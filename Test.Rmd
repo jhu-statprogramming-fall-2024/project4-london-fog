@@ -1,0 +1,42 @@
+
+---
+title: "Statistical Machine Learning: Final Project"
+author: "Yicheng Shen"
+date: "Nov 24, 2024"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = T, eval = T, cache = F, warning = F, message = F)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(out.width = "75%", fig.align = 'center')
+```
+
+```{r}
+library(quantmod)
+library(rvest)
+library(tidyquant)
+
+# Define stock symbols
+stocks <- c("AAPL", "MSFT", "GOOG")
+
+# Pull real-time stock data
+stock_data <- tq_get(stocks, get = "stock.prices", from = Sys.Date() - 7, to = Sys.Date())
+
+# Select only the required columns: date, open, close, high, low, volume
+stock_data_filtered <- stock_data %>%
+  select(symbol, date, open, high, low, close, volume)
+
+# View the data
+head(stock_data_filtered)
+
+
+# Get S&P 500 stock tickers from Wikipedia
+sp500_url <- "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+sp500_table <- read_html(sp500_url) %>%
+  html_table(fill = TRUE) %>%
+  .[[1]]  # The first table contains the S&P 500 list
+
+# Extract the ticker symbols
+sp500_tickers <- sp500_table$Symbol
+head(sp500_tickers)  # Preview the tickers
+```
