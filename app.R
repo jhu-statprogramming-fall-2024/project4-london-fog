@@ -228,7 +228,7 @@ server <- function(input, output) {
   
   # Data summary Tab 
   
-  output$Overall_table <- renderDataTable(SP500_info,
+  output$Overall_table <- renderDataTable(SP500_info %>% rename(Company = Security),
                                             # filter(date == "2021-02-22")%>%
                                             # select(-X) %>%
                                             # rename(
@@ -242,8 +242,12 @@ server <- function(input, output) {
   
   output$Summary_stock <- renderDataTable(tq_get(input$Summary_Stock_Selected, 
                                                  get = 'stock.prices',
-                                                 from = Sys.Date()-365*5, to = Sys.Date()) %>%
-                                            rename( Stock_Abbreviation = symbol ) %>% arrange(desc(date)),
+                                                 from = Sys.Date()-365*5, to = Sys.Date()) %>% 
+                                            mutate(Stock = symbol, Date = date,
+                                                   `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
+                                            select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
+                                            arrange(desc(Date)) %>% 
+                                            mutate(across(where(is.numeric), ~ round(.x, 3))),
                                           options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
   
   
