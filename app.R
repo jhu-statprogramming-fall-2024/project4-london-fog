@@ -77,25 +77,6 @@ in S&P 500 and how each individual sector did in the past compared to the genera
 
 ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("superhero"),
                  
-                 #Major Tab 1
-                 tabPanel("Introduction of this App",
-                          icon = icon("compass"),
-                          tags$br(
-                            p(intro_1),
-                            br(),
-                            p(intro_2),
-                            br(),
-                            p(intro_3),
-                            br(),
-                            p(intro_4)
-                          ),
-                          div(img(src='Wall_Pic.png',width="50%"), style="text-align: center;"),
-                          
-                 ),
-                 
-                 
-                 #Major Tab 2
-                 
                  tags$style(HTML("
                     /* Change font color of the DataTable body and header */
                     .dataTable tbody td {
@@ -118,6 +99,25 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                   ")),
                  
                  
+                 #Major Tab 1
+                 tabPanel("Introduction of this App",
+                          icon = icon("compass"),
+                          tags$br(
+                            p(intro_1),
+                            br(),
+                            p(intro_2),
+                            br(),
+                            p(intro_3),
+                            br(),
+                            p(intro_4)
+                          ),
+                          div(img(src='Wall_Pic.png',width="50%"), style="text-align: center;"),
+                          
+                 ),
+                 
+                 
+                 #Major Tab 2
+
                  tabPanel("Data Summary",
                           
                           icon = icon("atlas"),
