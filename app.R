@@ -293,7 +293,6 @@ server <- function(input, output) {
     {SP500_all%>%
         mutate(sector = `GICS Sector`) %>% 
         select(sector,volume)%>%
-        as_tibble()%>%
         group_by(sector)%>% 
         summarise(total_v = sum(volume))%>%
         ggplot() +
