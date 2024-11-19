@@ -4,6 +4,10 @@ library(tidyverse)
 library(ggthemes)
 library(plotly) 
 
+library(quantmod)
+library(rvest)
+library(tidyquant)
+
 library(DescTools)
 library(stringr)
 library(lubridate)
@@ -18,7 +22,25 @@ library(rsconnect)
 
 source("helperfunction.R")
 
-SP500_all <- read.csv("SP500_all.csv")
+
+# Get S&P 500 stock tickers from Wikipedia
+sp500_url <- "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+SP500_info <- read_html(sp500_url) %>%
+  html_table(fill = TRUE) %>%
+  .[[1]]  # The first table contains the S&P 500 list
+SP500_info
+
+
+## Take a while to pull, so we saved it in advance
+# write.csv(tq_get(SP500_info$Symbol, get = "stock.prices", from = Sys.Date()-1, to = Sys.Date()), 
+#           file = "S&P500_all.csv")
+
+SP500_all <- read.csv("S&P500_all.csv")
+
+# Join the data with info and daily price
+SP500_all <- left_join(SP500_all, SP500_info, by = join_by(symbol == Symbol))
+
+
 
 
 # All Text 
@@ -206,22 +228,22 @@ server <- function(input, output) {
   
   # Data summary Tab 
   
-  output$Overall_table <- renderDataTable(SP500_all%>%
-                                            filter(date == "2021-02-22")%>%
-                                            select(-X) %>%
-                                            rename(
-                                              Company = company,
-                                              Symbol = symbol,
-                                              Identifier = identifier,
-                                              Sedol=sedol
-                                            ), 
+  output$Overall_table <- renderDataTable(SP500_info,
+                                            # filter(date == "2021-02-22")%>%
+                                            # select(-X) %>%
+                                            # rename(
+                                            #   Company = Security,
+                                            #   Symbol = symbol,
+                                            #   Identifier = CIK,
+                                            #   Sector=`GICS Sector`
+                                            # ), 
                                           options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   
-  output$Summary_stock <- renderDataTable(tq_get(input$Summary_Stock_Selected,from = '2000-01-01',to = '2021-03-1',get = 'stock.prices') %>%
-                                            rename(
-                                              Stock_Abbreviation = symbol
-                                            ),
+  output$Summary_stock <- renderDataTable(tq_get(input$Summary_Stock_Selected, 
+                                                 get = 'stock.prices',
+                                                 from = Sys.Date()-365*5, to = Sys.Date()) %>%
+                                            rename( Stock_Abbreviation = symbol ) %>% arrange(desc(date)),
                                           options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
   
   
@@ -252,21 +274,24 @@ server <- function(input, output) {
   output$dist_graph <- renderPlot(
     if (input$sector_indicator != "individual" & input$graph_type == "Counts")
     { 
-      SP500_all%>%filter(date=="2021-02-22")%>% 
+      SP500_info %>% 
+        mutate(sector = `GICS Sector`) %>% 
         group_by(sector) %>% mutate(count=n()) %>% select(sector,count) %>% distinct() %>%
-        ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) + 
+        ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
         geom_bar(stat = "identity")+
         theme_economist() +
-        labs(x = '', y = 'Counts Among SP500', 
-             title = "Distribution of Various Sector Among SP500 Companies") +  
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5), 
+        labs(x = '', y = 'Counts Among S&P500', color = "Sector",
+             title = "Distribution of Various Sector Among S&P500 Companies") +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5),
               legend.text=element_text(size=12),
-              axis.text.x = element_text(face = "bold", size = 8, angle=-60)) 
+              axis.text.x = element_text(face = "bold", size = 10, angle=-50))
+      
     }
     
     
     else if (input$sector_indicator != "individual" & input$graph_type == "Volume")
-    {SP500_all%>%filter(date=="2021-02-22")%>%
+    {SP500_all%>%
+        mutate(sector = `GICS Sector`) %>% 
         select(sector,volume)%>%
         as_tibble()%>%
         group_by(sector)%>% 
@@ -274,12 +299,12 @@ server <- function(input, output) {
         ggplot() +
         geom_col(mapping = aes(x = reorder(sector, -total_v),y=total_v/1000000000,fill=sector))+
         theme_economist() +
-        labs(x = '', y = 'Total Daily Trading Volume (in billion)', title = "Volumes of Various Sector Among SP500 Companies") +
+        labs(x = '', y = 'Total Daily Trading Volume (in billion)', title = "Volumes of Various Sector Among SP500 Companies", color = "Sector") +
         scale_fill_hue(name = "Sector")+ 
         theme(legend.position="right",plot.title = element_text(hjust = 0.5),
               legend.text=element_text(size=12),
               axis.text.x = element_text(face = "bold", 
-                                         size = 8, angle=-60))}
+                                         size = 10, angle=-50))}
     else
     {
       industry_trend(input$interested_sector,input$start_date,input$end_date)
