@@ -346,20 +346,11 @@ server <- function(input, output) {
   # Data summary Tab 
   
   output$Overall_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
-                                            # filter(date == "2021-02-22")%>%
-                                            # select(-X) %>%
-                                            # rename(
-                                            #   Company = Security,
-                                            #   Symbol = symbol,
-                                            #   Identifier = CIK,
-                                            #   Sector=`GICS Sector`
-                                            # ), 
                                           options = list(pageLength = 10, lengthChange = FALSE, searching = F))
-  
   
   output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
                                                  get = 'stock.prices',
-                                                 from = Sys.Date()-365*5, to = Sys.Date()) %>% 
+                                                 from = Sys.Date()-365*10, to = Sys.Date()) %>% 
                                             mutate(Stock = symbol, Date = date,
                                                    `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
                                             select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
@@ -387,7 +378,6 @@ server <- function(input, output) {
                     "Daily Investment Worth Comparing with S&P 500" = "Compare",
                     "Daily Transaction Volume" = "volume"))}
     else{})
-  
   
   output$market_trend_plot <- renderPlot(
     if (input$market_indicator == "individual" & input$stock_stats == "open")
@@ -420,7 +410,7 @@ server <- function(input, output) {
         geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
         theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     
-    # Market
+    # Market subplot
     else if (input$market_indicator == "Market")
     {tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date))%>%
@@ -486,7 +476,7 @@ server <- function(input, output) {
         ggplot() +
         geom_col(mapping = aes(x = reorder(sector, -total_v),y=total_v/1000000000,fill=sector))+
         theme_economist() +
-        labs(x = '', y = 'Total Daily Trading Volume (in billion)', title = "Volumes of Various Sector Among SP500 Companies", color = "Sector") +
+        labs(x = '', y = 'Total Daily Trading Volume (in billion)', title = "Volumes of different sectors among S&P500 companies", color = "Sector") +
         scale_fill_hue(name = "Sector")+ 
         theme(legend.position="right",plot.title = element_text(hjust = 0.5),
               legend.text=element_text(size=12),
