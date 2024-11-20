@@ -71,7 +71,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                   ")),
                  
                  
-                 #Major Tab 1
+                 # Tab Intro
                  tabPanel("Introduction of this App",
                           icon = icon("compass"),
                           tags$br(
@@ -88,7 +88,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  ),
                  
                  
-                 #Major Tab 2
+                 # Tab Data Summary
 
                  tabPanel("Data Summary",
                           
@@ -119,7 +119,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                           )),
                  
                  
-                 # Tab 2.2
+                 # Tab Stock Trends
                  tabPanel("Stock Trends",
                           
                           icon = icon("chart-line"),
@@ -131,9 +131,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                               sidebarPanel(
                                 radioButtons("market_indicator", "Select Your Interested Market Indicator",
                                              c("Individual Stocks (ex. AAPL for Apple Inc.)" = "individual",
-                                               "Dow Jones Industrial Average (DJI)" = "DJI",
-                                               "SPDR S&P 500 Trust ETF (SPY)" = "SPY",
-                                               "Nasdaq Invesco Trust Series (QQQ)" = "QQQ")),
+                                               "Top ETFs" = "Market")),
                                 br(),
                                 
                                 # Option reactive to the first 
@@ -152,9 +150,9 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                 # Time Frame 
                                 sliderInput("Trend_Time",
                                             "Select Your Interested Time Frame",
-                                            value = 2024,
-                                            min = 2010,
-                                            max = 2024, 
+                                            value = c(2010,2024),
+                                            min = 2005,
+                                            max = 2025, 
                                             animate = T,
                                             sep = ""),
                                 
@@ -209,7 +207,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  
                  
                  
-                 # Major Tab 3
+                 # Tab Market Distribution
                  tabPanel("Market Distribution",
                           
                           icon = icon("chart-bar"),
@@ -260,7 +258,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  
                  
                  
-                 #Major Tab 4
+                 # Tab Stock Selection
                  tabPanel("Stock Selection",
                           
                           icon = icon("diagnoses"),
@@ -324,14 +322,14 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                           
                  ),
                  
-                 # Major Tab 5
+                 # Tab Understand Your Portfolio
                  tabPanel("Understand Your Portfolio",
                           
                           icon = icon("search-dollar")
                           
                  ),
                  
-                 # Major Tab 6
+                 # Tab Portfolio Optimization
                  tabPanel("Portfolio Optimization",
                           
                           icon = icon("coins")
@@ -393,10 +391,10 @@ server <- function(input, output) {
   
   output$market_trend_plot <- renderPlot(
     if (input$market_indicator == "individual" & input$stock_stats == "open")
-    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2010-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         drop_na()%>%
         mutate(year=year(date), month = month(date))%>%
-        filter(year <= input$Trend_Time)%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
         ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
         labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
         geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
@@ -404,9 +402,9 @@ server <- function(input, output) {
     
     
     else if (input$market_indicator == "individual" & input$stock_stats == "volume")
-    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2010-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date))%>%
-        filter(year <= input$Trend_Time)%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
         ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
         labs(x="", y="Daily Transcation (in millions)",color="Stock", title = "Daily transction volume of stock")+
         geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
@@ -414,58 +412,23 @@ server <- function(input, output) {
     
     
     else if (input$market_indicator == "individual" & input$stock_stats == "Compare")
-    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2010-01-01',to = Sys.Date(),get = 'stock.prices') %>%
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date))%>%
-        filter(year <= input$Trend_Time)%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
         ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
         labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
         geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
         theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     
+    # Market
+    else if (input$market_indicator == "Market")
+    {tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     
-    else if (input$market_indicator == "DJI")
-    {all_DJI %>%
-        drop_na()%>%
-        mutate(year=year(date))%>%
-        filter(year <= input$Trend_Time)%>%
-        group_by(year)%>%
-        summarize(mean_stock_stats=mean(adjusted))%>%
-        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
-        labs(x="Year", y="Investment in  DJI")+
-        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        ggtitle("A One-dollar Investment in the DJI Index in 2000")+
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
-        xlim(2000, 2024)}
-    
-    
-    else if (input$market_indicator == "SPY")
-    {all_SPY %>%
-        drop_na()%>%
-        mutate(year=year(date))%>%
-        filter(year <= input$Trend_Time)%>%
-        group_by(year)%>%
-        summarize(mean_stock_stats=mean(adjusted))%>%
-        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
-        labs(x="", y="Investment in SPY")+
-        ggtitle("A One-dollar Investment in the S&P 500 Index in 2000")+
-        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
-        xlim(2000, 2024)}
-    
-    
-    else if (input$market_indicator == "QQQ")
-    {all_QQQ %>%
-        drop_na()%>%
-        mutate(year=year(date))%>%
-        filter(year <= input$Trend_Time)%>%
-        group_by(year)%>%
-        summarize(mean_stock_stats=mean(adjusted))%>%
-        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
-        ggtitle("A One-dollar Investment in the NASDAQ 100 Index in 2000")+
-        labs(x="", y="Investment in QQQ")+
-        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
-        xlim(2000, 2024)}
   )
   
   

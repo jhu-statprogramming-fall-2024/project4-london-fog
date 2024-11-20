@@ -25,8 +25,8 @@ Note that the US stock market does not open every day, so be careful about which
 stock_trend_jargon_1 <- "S&P 500 (SPY): A stock market index that measures the stock performance of 500 large companies 
 listed on stock exchanges in the United States. It is one of the most commonly followed equity indices.
 "
-stock_trend_jargon_2 <- "Dow Jones Industrial Average (DJI): Also known as the Dow, is a stock market index that measures 
-the stock performance of 30 large companies listed on stock exchanges in the United States
+stock_trend_jargon_2 <- "The Vanguard Total Stock Market ETF (VTI) tracks the performance of the CRSP U.S. Total Market Index.
+ The fund is a market capitalization-weighted index that measures the entire investable U.S. equity market. It includes small-, mid-, and large-cap companies. The fund is managed in a passive manner and uses an index-sampling strategy.
 "
 stock_trend_jargon_3 <- "Nasdaq 100 (QQQ): A stock market index made up of 102 equity securities issued by 100 of the largest non-financial companies listed on the Nasdaq stock market, 
 which primarily focuses on technology."

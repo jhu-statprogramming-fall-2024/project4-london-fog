@@ -42,7 +42,7 @@ write.csv(tq_get(sp500_table$Symbol, get = "stock.prices", from = Sys.Date()-1, 
 ```
 
 ```{r}
-tq_get("QQQ", get = "stock.prices", from = Sys.Date()-1, to = Sys.Date() )
+tq_get("GLD", get = "stock.prices", from = Sys.Date()-1, to = Sys.Date() )
 ```
 
 ```{r}
