@@ -21,7 +21,7 @@ library(rsconnect)
 
 
 source("helperfunction.R")
-
+source("Text.R")
 
 # Get S&P 500 stock tickers from Wikipedia
 sp500_url <- "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
@@ -41,34 +41,6 @@ SP500_all <- read.csv("S&P500_all.csv")
 SP500_all <- left_join(SP500_all, SP500_info, by = join_by(symbol == Symbol))
 
 
-
-
-# All Text 
-# Tab 1 
-intro_1 <- "Are you sometimes befuddled when choosing the best future investment? Are you so tired of not catching up with the fluctuation of the financial market? Are you frustrated by the unpredictableness of your stocks? Don't Worry! Our app will be a tool that aims to give you an edge to better optimize your investment strategy in the stock market. Here is a brief overview of this tool. 
-"
-intro_2 <- "We recommend to visit our data summary first. It provides a general sense of the data running behind the scenes, which is the backbone of all the functions there are built into this app."
-intro_3 <-  "The rest of our main tabs serve to illustrate a more analytical pitcure of stocks, with detailed instructions and informative terminologies provided along with the graphs. The market distribution tab explains how different sectors play a role in S&P 500 and how each individual sector did in the past compared to the general market. The stock trend tab allows users to learn about general market trends and compare individual stock’s performance with the general market’s. The stock selection tab provides insights on individual stocks based on K-means clustering. The understand your portfolio page enables users to back test your own newly acquired investment strategies. Finally, the portfolio optimization page optimizes the user's portfolio to minimize risk based on past data. 
-"
-intro_4 <-  "Now, please give it a try and enjoy exploring the stock market!"
-
-
-# Tab 2 
-data_summary_1 <- "Our data source comes from Yahoo finance, a website that provides financial news, data and commentary including stock quotes, press releases, financial reports, and other original contents. Our app mainly uses its records of every single stock/ETF that gets traded on the U.S. stock exchanges from Jan 1, 2000 till the end of Feburary, 2021. 
-For each stock, it offers some basic information such as company name, SEDOL code, industrial sector, currency etc. The main variables of interests are the stock's the daily opening, closing, highest and lowest prices, as well as the trading volume everyday."
-data_summary_2 <- "Here is a snapshot of what the 500 largest companies on the U.S. stock exchanges (SP500) looks like on a particular day."
-data_summary_3 <- "And of course, you have the opportunity to view a specific stock and get some basic ideas about its performance! Please type in stock symbol or abbreviation. If you are not sure about your stock's symbol, feel free to refer to this link that contains the list of all stock abbreviation! The search fucntion can be used to further refine the output by time. For example, if you want to see your stock's price on a particular date, try type in Year-Month-Date, like 2021-01-01."
-
-
-
-# Tab 3
-market_dis_instruction_1 <- "This tab mainly consists of two functions:" 
-market_dis_instruction_2 <- "When “Overall Market” is selected, a graph demonstrating the sector distribution in terms of count and trading volume within the S&P 500 universe will be generated."
-market_dis_instruction_3 <- "When “Individual Sector” is selected, the user could select a specific sector and a specific time frame that she is interested in. 
-A graph will be generated comparing the sector ETF’s performance to the general market’s (S&P 500 index) within the specified time frame. 
-Annualized return and volatility of the sector ETF and S&P 500 index will also be generated as a reference. "
-market_dis_instruction_4 <- "The user could use this tab to learn more about how different sectors play a role 
-in S&P 500 and how each individual sector did in the past compared to the general market. "
 
 
 ## Main APP Part
@@ -129,7 +101,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                     p(data_summary_2),
                             ),
                             
-                            dataTableOutput("Overall_table"),
+                            DT::DTOutput("Overall_table"),
                             
                             tags$br(br(),
                                     p(data_summary_3),
@@ -142,9 +114,99 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             textInput(inputId = "Summary_Stock_Selected",label = "Your Stock of Interest",value = "AAPL"),
                             
                             
-                            dataTableOutput("Summary_stock"),
+                            DT::DTOutput("Summary_stock"),
                             
                           )),
+                 
+                 
+                 # Tab 2.2
+                 tabPanel("Stock Trends",
+                          
+                          icon = icon("chart-line"),
+                          
+                          fluidPage(
+                            sidebarLayout(
+                              
+                              # First Button chooses your interested market indicator
+                              sidebarPanel(
+                                radioButtons("market_indicator", "Select Your Interested Market Indicator",
+                                             c("Individual Stocks (ex. AAPL for Apple Inc.)" = "individual",
+                                               "Dow Jones Industrial Average (DJI)" = "DJI",
+                                               "SPDR S&P 500 Trust ETF (SPY)" = "SPY",
+                                               "Nasdaq Invesco Trust Series (QQQ)" = "QQQ")),
+                                br(),
+                                
+                                # Option reactive to the first 
+                                uiOutput("option21"),
+                                
+                                br(),
+                                
+                                uiOutput("option22"),
+                                
+                                br(),
+                                
+                                uiOutput("third_option"),
+                                
+                                br(),
+                                
+                                # Time Frame 
+                                sliderInput("Trend_Time",
+                                            "Select Your Interested Time Frame",
+                                            value = 2024,
+                                            min = 2010,
+                                            max = 2024, 
+                                            animate = T,
+                                            sep = ""),
+                                
+                                br(),
+                                
+                                # Threshold value for line charts
+                                numericInput("target_value",h5("Threshold Value: "),value=0)
+                                
+                              ),
+                              
+                              mainPanel(
+                                tabsetPanel(type = "tabs",
+                                            tabPanel("Instruction",
+                                                     br(),
+                                                     
+                                                     strong(stock_trend_1),
+                                                     
+                                                     tags$ol(
+                                                       br(),
+                                                       tags$li(stock_trend_2),
+                                                       br(),
+                                                       tags$li(stock_trend_3),
+                                                       br()
+                                                       
+                                                     ),
+                                                     p(stock_trend_4),
+                                                     br(),
+                                                     div(img(src='dow-sp500-nasdaq.png',width="60%"), style="text-align: center;"),
+                                                     br()
+                                            ),
+                                            tabPanel("Key Terms",
+                                                     
+                                                     br(),
+                                                     br(),
+                                                     p(stock_trend_jargon_1),
+                                                     br(),
+                                                     p(stock_trend_jargon_2),
+                                                     br(),
+                                                     p(stock_trend_jargon_3),
+                                                     br(),
+                                                     p(stock_trend_jargon_4),
+                                                     br(),
+                                                     p(stock_trend_jargon_5),
+                                                     br()
+                                            ),
+                                            tabPanel("Market Trend Plot", plotOutput("market_trend_plot")))
+                              )
+                            )
+                          )
+                          
+                 ),
+                 
                  
                  
                  # Major Tab 3
@@ -189,7 +251,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                            
                                                            
                                                   ),
-                                                  tabPanel("Sector Plot", plotOutput("dist_graph"),dataTableOutput("sector_compare")))
+                                                  tabPanel("Sector Plot", plotOutput("dist_graph"), DT::DTOutput("sector_compare")))
                                       
                                       
                             ))
@@ -198,10 +260,67 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  
                  
                  
-                 # Major Tab 4
+                 #Major Tab 4
                  tabPanel("Stock Selection",
                           
-                          icon = icon("diagnoses")
+                          icon = icon("diagnoses"),
+                          
+                          fluidPage(
+                            
+                            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
+                                         
+                                         tags$br(br(),
+                                                 p(selection_0),
+                                                 
+                                         ),
+                                         
+                                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
+                                         
+                                         tags$br(
+                                           br(),
+                                           p(selection_1),
+                                           br()),
+                                         
+                                         DT::DTOutput("info")),
+                            
+                            mainPanel(tabsetPanel(type="tabs", 
+                                                  tabPanel("Instruction",
+                                                           br(),
+                                                           
+                                                           strong(selection_instruction_1),
+                                                           
+                                                           tags$ol(
+                                                             br(),
+                                                             tags$li(selection_instruction_2),
+                                                             br(),
+                                                             tags$li(selection_instruction_3),
+                                                             br()
+                                                             
+                                                           ),
+                                                           p(selection_instruction_4),
+                                                           br(),
+                                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
+                                                           br()
+                                                           
+                                                  ),
+                                                  tabPanel("Model Building",
+                                                           br(),
+                                                           br(),
+                                                           p(selection_model_1),
+                                                           br(),
+                                                           p(selection_model_2),
+                                                           br(),
+                                                           p(selection_model_3),
+                                                           br(),
+                                                           p(selection_model_4),
+                                                           br()
+                                                           
+                                                  ),
+                                                  tabPanel("S&P 500 Cluster", plotOutput("Cluster",click = "my_click"),
+                                                           br(), DT::DTOutput("cluster_info"))
+                            ))
+                            
+                          )
                           
                  ),
                  
@@ -228,7 +347,7 @@ server <- function(input, output) {
   
   # Data summary Tab 
   
-  output$Overall_table <- renderDataTable(SP500_info %>% rename(Company = Security),
+  output$Overall_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
                                             # filter(date == "2021-02-22")%>%
                                             # select(-X) %>%
                                             # rename(
@@ -240,7 +359,7 @@ server <- function(input, output) {
                                           options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   
-  output$Summary_stock <- renderDataTable(tq_get(input$Summary_Stock_Selected, 
+  output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
                                                  get = 'stock.prices',
                                                  from = Sys.Date()-365*5, to = Sys.Date()) %>% 
                                             mutate(Stock = symbol, Date = date,
@@ -250,8 +369,110 @@ server <- function(input, output) {
                                             mutate(across(where(is.numeric), ~ round(.x, 3))),
                                           options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
   
+  # Stock Trend Tab
   
-  # Output in market_dist
+  output$option21 <- renderUI(
+    if (input$market_indicator == "individual")
+    {textInput(inputId = "Select_Stock_01", label="First Stock of Interest",value = "AAPL")}
+    else{})
+  
+  output$option22 <- renderUI(
+    if (input$market_indicator == "individual")
+    {textInput(inputId = "Select_Stock_02", label="Second Stock of Interest",value = "TSLA")}
+    else{})                
+  
+  
+  output$third_option <- renderUI(
+    if (input$market_indicator == "individual")
+    {radioButtons("stock_stats", "Select specific stock market information",
+                  c("Daily Investment Worth" = "open",
+                    "Daily Investment Worth Comparing with S&P 500" = "Compare",
+                    "Daily Transaction Volume" = "volume"))}
+    else{})
+  
+  
+  output$market_trend_plot <- renderPlot(
+    if (input$market_indicator == "individual" & input$stock_stats == "open")
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2010-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        drop_na()%>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+    
+    
+    else if (input$market_indicator == "individual" & input$stock_stats == "volume")
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2010-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
+        labs(x="", y="Daily Transcation (in millions)",color="Stock", title = "Daily transction volume of stock")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+    
+    
+    else if (input$market_indicator == "individual" & input$stock_stats == "Compare")
+    {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2010-01-01',to = Sys.Date(),get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+    
+    
+    else if (input$market_indicator == "DJI")
+    {all_DJI %>%
+        drop_na()%>%
+        mutate(year=year(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        group_by(year)%>%
+        summarize(mean_stock_stats=mean(adjusted))%>%
+        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
+        labs(x="Year", y="Investment in  DJI")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        ggtitle("A One-dollar Investment in the DJI Index in 2000")+
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
+        xlim(2000, 2024)}
+    
+    
+    else if (input$market_indicator == "SPY")
+    {all_SPY %>%
+        drop_na()%>%
+        mutate(year=year(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        group_by(year)%>%
+        summarize(mean_stock_stats=mean(adjusted))%>%
+        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
+        labs(x="", y="Investment in SPY")+
+        ggtitle("A One-dollar Investment in the S&P 500 Index in 2000")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
+        xlim(2000, 2024)}
+    
+    
+    else if (input$market_indicator == "QQQ")
+    {all_QQQ %>%
+        drop_na()%>%
+        mutate(year=year(date))%>%
+        filter(year <= input$Trend_Time)%>%
+        group_by(year)%>%
+        summarize(mean_stock_stats=mean(adjusted))%>%
+        ggplot(aes(x=year,y=mean_stock_stats)) + geom_point() + geom_line(size = 1.2)+
+        ggtitle("A One-dollar Investment in the NASDAQ 100 Index in 2000")+
+        labs(x="", y="Investment in QQQ")+
+        geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()+ 
+        xlim(2000, 2024)}
+  )
+  
+  
+  
+  
+  
+  # Market Distribution Tab
   
   output$option_dist_1 <- renderUI(
     if (input$sector_indicator != "individual")
@@ -315,7 +536,7 @@ server <- function(input, output) {
     
   )
   
-  output$sector_compare <-renderDataTable(
+  output$sector_compare <-DT::renderDT(expr =
     
     if(input$sector_indicator == "individual")
     {
