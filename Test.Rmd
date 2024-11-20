@@ -41,3 +41,15 @@ write.csv(tq_get(sp500_table$Symbol, get = "stock.prices", from = Sys.Date()-1, 
           file = "S&P500_all.csv")
 ```
 
+```{r}
+tq_get("QQQ", get = "stock.prices", from = Sys.Date()-1, to = Sys.Date() )
+```
+
+```{r}
+tq_get(c("TSLA","AAPL"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        labs(x="", y="Daily Investment Worth",color="Stock", title = "A One-dollar Investment in Your Specified Stocks")+
+        # geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()
+```
+
