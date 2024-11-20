@@ -101,18 +101,66 @@ h2, h3, h4 {
 }
 "
 
+
+
+
+
+themeSelector <- function() {
+  div(
+    div(
+      selectInput("shinytheme-selector", "Choose a theme",
+                  c("default", shinythemes:::allThemes()),
+                  selectize = FALSE
+      )
+    ),
+    tags$script(
+      "$('#shinytheme-selector')
+        .on('change', function(el) {
+        var allThemes = $(this).find('option').map(function() {
+        if ($(this).val() === 'default')
+        return 'bootstrap';
+        else
+        return $(this).val();
+        });
+        // Find the current theme
+        var curTheme = el.target.value;
+        if (curTheme === 'default') {
+        curTheme = 'bootstrap';
+        curThemePath = 'shared/bootstrap/css/bootstrap.min.css';
+        } else {
+        curThemePath = 'shinythemes/css/' + curTheme + '.min.css';
+        }
+        // Find the <link> element with that has the bootstrap.css
+        var $link = $('link').filter(function() {
+        var theme = $(this).attr('href');
+        theme = theme.replace(/^.*\\//, '').replace(/(\\.min)?\\.css$/, '');
+        return $.inArray(theme, allThemes) !== -1;
+        });
+        // Set it to the correct path
+        $link.attr('href', curThemePath);
+        });"
+    )
+  )
+}
+
+
+
 ui <- navbarPage(
   "How to Survive in the U.S. Stock Market",
   theme = shinytheme("flatly"),
   
-  # Add custom CSS
-  tags$head(tags$style(HTML(custom_css))),
-  
+  # # Add custom CSS
+  # tags$head(tags$style(HTML(custom_css))),
+
   
   # Tab Intro
   tabPanel("Introduction of this App",
            icon = icon("compass"),
+           fluidRow(
+             themeSelector(), 
+           
            tags$br(
+             br(),
              p(intro_1),
              br(),
              p(intro_2),
@@ -120,7 +168,7 @@ ui <- navbarPage(
              p(intro_3),
              br(),
              p(intro_4)
-           ),
+           )),
            div(img(src='Wall_Pic.png',width="50%"), style="text-align: center;"),
            
   ),
