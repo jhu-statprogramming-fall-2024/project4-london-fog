@@ -1,17 +1,21 @@
 # Final Project 777
 
+# Load packages
 library(tidyverse)
 library(ggthemes)
 library(plotly) 
 
+# pull data 
 library(quantmod)
 library(rvest)
 library(tidyquant)
 
+# analysis
 library(DescTools)
 library(stringr)
 library(lubridate)
 
+# shiny packages
 library(shiny)
 library(shinyWidgets)
 library(shinythemes)
