@@ -115,7 +115,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             
                             br(),
                             
-                            textInput(inputId = "Summary_Stock_Selected",label = "Your Stock of Interest",value = "AAPL"),
+                            textInput(inputId = "Summary_Stock_Selected",label = "Your Stock of Interest",value = "SHAK"),
                             
                             
                             DT::DTOutput("Summary_stock"),
