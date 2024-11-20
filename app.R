@@ -117,7 +117,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             
                             textInput(inputId = "Summary_Stock_Selected",label = "Your Stock of Interest",value = "SHAK"),
                             
-                            
                             DT::DTOutput("Summary_stock"),
                             
                           )),
@@ -202,7 +201,12 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                      p(stock_trend_jargon_5),
                                                      br()
                                             ),
-                                            tabPanel("Stock Trend Plot", plotOutput("stock_trend_plot")))
+                                            tabPanel("Stock Trend", plotOutput("stock_trend_plot"), 
+                                                     tags$br(br(),
+                                                             p("Daily Stock Datatable"),
+                                                     ),
+                                                     DT::DTOutput("summary_stock_individual") 
+                                                     ))
                               )
                             )
                           )
@@ -249,13 +253,12 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                            p(market_dis_instruction_4),
                                                            div(img(src='pexels-photo-187041.png',width="60%"), style="text-align: center;"),
                                                            br()
-                                                           
-                                                           
-                                                           
+     
                                                   ),
-                                                  tabPanel("Sector Plot", plotOutput("dist_graph"), DT::DTOutput("sector_compare")))
-                                      
-                                      
+                                                  tabPanel("Sector Plot", 
+                                                           plotOutput("dist_graph"), 
+                                                           DT::DTOutput("sector_compare")))
+     
                             ))
                           
                  ),
@@ -383,10 +386,22 @@ server <- function(input, output) {
                     "Daily Transaction Volume" = "volume"))}
     else{})
   
+  
+  output$summary_stock_individual <- DT::renderDT(expr = tq_get(c(input$Select_Stock_01,input$Select_Stock_02), 
+                                                     get = 'stock.prices',
+                                                     ,from = '2000-01-01',to = Sys.Date()) %>% 
+                                                     mutate(year=year(date), month = month(date))%>%
+                                                     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+                                                     mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
+                                                     select(Stock, Date, Price, Volume) %>% 
+                                                     arrange(desc(Date)) %>% 
+                                                     mutate(across(where(is.numeric), ~ round(.x, 3))),
+                                       options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
+  
+  
   output$stock_trend_plot <- renderPlot(
     if (input$market_indicator == "individual" & input$stock_stats == "open")
     {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-        drop_na()%>%
         mutate(year=year(date), month = month(date))%>%
         filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
         ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
@@ -425,9 +440,7 @@ server <- function(input, output) {
     
   )
   
-  
-  
-  
+
   
   # Market Distribution Tab
   
