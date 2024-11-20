@@ -202,7 +202,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                      p(stock_trend_jargon_5),
                                                      br()
                                             ),
-                                            tabPanel("Market Trend Plot", plotOutput("market_trend_plot")))
+                                            tabPanel("Stock Trend Plot", plotOutput("stock_trend_plot")))
                               )
                             )
                           )
@@ -383,7 +383,7 @@ server <- function(input, output) {
                     "Daily Transaction Volume" = "volume"))}
     else{})
   
-  output$market_trend_plot <- renderPlot(
+  output$stock_trend_plot <- renderPlot(
     if (input$market_indicator == "individual" & input$stock_stats == "open")
     {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         drop_na()%>%
