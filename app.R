@@ -438,7 +438,7 @@ server <- function(input, output) {
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
       stock_data %>% plot_ly(
-      x = ~date, y = ~close, color = ~symbol, type = 'scatter',mode = 'lines',
+      x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines', 
       text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
       hoverinfo = 'text'
     ) %>%
@@ -466,7 +466,7 @@ server <- function(input, output) {
             mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
             filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
       stock_data %>% plot_ly(
-      x = ~date, y = ~volume_adj, color = ~symbol, type = 'scatter',mode = 'lines',
+      x = ~date, y = ~volume_adj, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
       text = ~paste('Date:', date, '<br>Daily Transcation:', round(volume_adj,3), 'millions', '<br>Stock:', symbol),
       hoverinfo = 'text'
     ) %>%
@@ -494,7 +494,7 @@ server <- function(input, output) {
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
     stock_data %>% plot_ly(
-      x = ~date, y = ~close, color = ~symbol, type = 'scatter',mode = 'lines',
+      x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
       text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
       hoverinfo = 'text'
     ) %>%
@@ -522,7 +522,7 @@ server <- function(input, output) {
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
     stock_data %>% plot_ly(
       x = ~date, y = ~close,
-      color = ~symbol, type = 'scatter',mode = 'lines',
+      color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
       text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
       hoverinfo = 'text'
     ) %>%
