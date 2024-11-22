@@ -46,13 +46,35 @@ stock_trend_4 <- "The user could use this tab to learn about general market tren
 
 # Tab 3
 market_dis_instruction_1 <- "This tab mainly consists of two functions:" 
-market_dis_instruction_2 <- "When “Overall Market” is selected, a graph demonstrating the sector distribution in terms of count and trading volume within the S&P 500 universe will be generated."
-market_dis_instruction_3 <- "When “Individual Sector” is selected, the user could select a specific sector and a specific time frame that she is interested in. 
-A graph will be generated comparing the sector ETF’s performance to the general market’s (S&P 500 index) within the specified time frame. 
-Annualized return and volatility of the sector ETF and S&P 500 index will also be generated as a reference. "
+market_dis_instruction_2 <- "When the 'Price of Each Sector' option is selected, users can track the stock price changes over the years for each sector within the S&P 500."
+market_dis_instruction_3 <- "When the 'Volume of Each Sector' option is selected, users can monitor the changes in stock volume over the years for each sector within the S&P 500."
 market_dis_instruction_4 <- "The user could use this tab to learn more about how different sectors play a role 
-in S&P 500 and how each individual sector did in the past compared to the general market. "
-
+in S&P 500. "
+market_dis_instruction_5 <- "The stock symbols for each sector are listed below:"
+market_dis_instruction_6 <- "<ul>
+                    <li>XLC: Communication Services</li>
+                    <br>
+                    <li>XLY: Consumer Discretionary</li>
+                    <br>
+                    <li>XLP: Consumer Staples</li>
+                    <br>
+                    <li>XLE: Energy </li>
+                    <br>
+                    <li>XLF: Financials </li>
+                    <br>
+                    <li>XLV: Health Care </li>
+                    <br>
+                    <li>XLI: Industrials </li>
+                    <br>
+                    <li>XLB: Materials </li>
+                    <br>
+                    <li>XLRE: Real Estate </li>
+                    <br>
+                    <li>XLK: Technology </li>
+                    <br>
+                    <li>XLU: Utilities </li>
+                    <br>
+                  </ul>"
 
 # Tab 4
 selection_0 <- "A stock of interest could be entered and a black locator will locate your stock on the graph"

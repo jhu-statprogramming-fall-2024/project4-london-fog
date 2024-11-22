@@ -4,6 +4,7 @@
 library(tidyverse)
 library(ggthemes)
 library(plotly) 
+library(crosstalk)
 
 # pull data 
 library(quantmod)
@@ -19,7 +20,8 @@ library(lubridate)
 library(shiny)
 library(shinyWidgets)
 library(shinythemes)
-
+library(htmlwidgets)
+library(DT)
 library(rsconnect)
 
 
@@ -32,7 +34,10 @@ sp500_url <- "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 SP500_info <- read_html(sp500_url) %>%
   html_table(fill = TRUE) %>%
   .[[1]]  # The first table contains the S&P 500 list
-SP500_info
+
+industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
+sector_data <- tq_get(industries_ETF,from = "2010-01-01",to = Sys.Date(), get = 'stock.prices') 
+
 
 
 ## Take a while to pull, so we saved it in advance
@@ -224,18 +229,22 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             
                             sidebarPanel( 
                               
-                              radioButtons("sector_indicator", "Select Your Interested Aspect",
-                                           c("Sector Distribution" = "overall",
-                                             "Individual Sector" = "individual"
-                                             
-                                           )),
-                              
-                              
-                              uiOutput("option_dist_2"),
-                              uiOutput("option_dist_3"),
-                              uiOutput("option_dist_1")
-                              
-                              
+                              #radioButtons("sector_indicator", "Select Your Interested Aspect",
+                              #             c("Market Snapshot through S&P500" = "overall",
+                              #               "Other ETFs" = "individual"
+                              #               
+                              #             )),
+
+                              radioButtons("graph_type", "Select Your Preferred Visualization",
+                                c("Price of Each Sector" = "Price",
+                                "Volume of Each Sector" = "Volume")),
+                    # Time Frame 
+                                sliderInput("Trend_Time_market",
+                                            "Select Your Interested Time Frame",
+                                            value = c(2015,2023),
+                                            min = 2014,
+                                            max = 2024, 
+                                            sep = "") 
                             ),
                             
                             mainPanel(tabsetPanel(type = "tabs",
@@ -251,13 +260,19 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                              
                                                            ),
                                                            p(market_dis_instruction_4),
-                                                           div(img(src='pexels-photo-187041.png',width="60%"), style="text-align: center;"),
-                                                           br()
+                                                           br(),
+                                                           p(market_dis_instruction_5),
+                                                           br(),
+                                                           fluidRow(
+                                                            column(3, uiOutput("market_dis_instruction_6")),  
+                                                            column(9, plotOutput("dist_graph")))
      
                                                   ),
                                                   tabPanel("Sector Plot", 
-                                                           plotOutput("dist_graph"), 
-                                                           DT::DTOutput("sector_compare")))
+                                                           plotlyOutput("sector_plot"),
+                                                           DT::DTOutput("filtered_table")
+                                                           #DT::DTOutput("sector_compare")
+                                                           ))
      
                             ))
                           
@@ -348,7 +363,17 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
 
 
 # Shiny Server Function
-server <- function(input, output) {
+server <- function(input, output, session) {
+
+sector_data_prepped <- reactive({
+    sector_data %>%
+    select(symbol, date, adjusted, volume) %>%
+    rename(Sector = symbol, Date = date, Price = adjusted, Volume = volume) %>%
+    filter(
+        Date >= as.Date(paste0(input$Trend_Time_market[1], "-01-01")) & 
+        Date <= as.Date(paste0(input$Trend_Time_market[2], "-01-01"))
+    ) 
+  })
   
   # Data summary Tab 
   
@@ -467,46 +492,131 @@ server <- function(input, output) {
   
   
   output$dist_graph <- renderPlot(
-    if (input$sector_indicator != "individual" & input$graph_type == "Counts")
-    { 
-      SP500_info %>% 
-        mutate(sector = `GICS Sector`) %>% 
-        group_by(sector) %>% mutate(count=n()) %>% select(sector,count) %>% distinct() %>%
+      SP500_info %>%
+        mutate(sector = `GICS Sector`) %>%
+        group_by(sector) %>%
+        mutate(count = n()) %>%
+        select(sector, count) %>%
+        distinct() %>%
         ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
-        geom_bar(stat = "identity")+
-        theme_economist() +
-        labs(x = '', y = 'Counts Among S&P500', color = "Sector",
-             title = "Distribution of Various Sector Among S&P500 Companies") +
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5),
-              legend.text=element_text(size=12),
-              axis.text.x = element_text(face = "bold", size = 10, angle=-50))
-      
-    }
-    
-    
-    else if (input$sector_indicator != "individual" & input$graph_type == "Volume")
-    {SP500_all%>%
-        mutate(sector = `GICS Sector`) %>% 
-        select(sector,volume)%>%
-        group_by(sector)%>% 
-        summarise(total_v = sum(volume))%>%
-        ggplot() +
-        geom_col(mapping = aes(x = reorder(sector, -total_v),y=total_v/1000000000,fill=sector))+
-        theme_economist() +
-        labs(x = '', y = 'Total Daily Trading Volume (in billion)', title = "Volumes of different sectors among S&P500 companies", color = "Sector") +
-        scale_fill_hue(name = "Sector")+ 
-        theme(legend.position="right",plot.title = element_text(hjust = 0.5),
-              legend.text=element_text(size=12),
-              axis.text.x = element_text(face = "bold", 
-                                         size = 10, angle=-50))}
-    else
-    {
-      industry_trend(input$interested_sector,input$start_date,input$end_date)
-    }
-    
+        geom_bar(stat = "identity", show.legend = FALSE, width = 0.8) +  # Adjust bar width and hide legend
+        geom_text(aes(label = count), vjust = -0.5, size = 4, fontface = "bold", color = "black") +  # Add count labels on bars
+        scale_fill_brewer(palette = "Set3") +  # Use a more readable color palette
+        theme_minimal() +  # A cleaner background
+        labs(
+          x = '', 
+          y = 'Counts Among S&P500', 
+          title = "Distribution of Various Sectors Among S&P500 Companies"
+        ) +
+        theme(
+          plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+          axis.text.x = element_text(face = "bold", size = 10, angle = -45, hjust = 1),  # Improve text angle
+          axis.title = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          plot.margin = margin(10, 20, 10, 20)  # Adjust margins
+        )
   )
+  output$market_dis_instruction_6 <- renderUI({
+    HTML(market_dis_instruction_6)
+  })
+
+  output$sector_plot <- renderPlotly({
+    
+    shared_sector_data <- SharedData$new(sector_data_prepped(), key = ~Sector)
+    if(input$graph_type == "Price"){
+        plot_ly(
+        shared_sector_data,
+        x = ~Date,
+        y = ~Price,
+        color = ~Sector,
+        colors = "RdYlBu", 
+        type = "scatter",
+        mode = "lines",  # Adding markers for better hover interaction
+        hoverinfo = "text",  # Show custom hover text
+        text = ~paste("Sector: ", Sector, "<br>Date: ", Date, "<br>Price: $", round(Price, 2)),  # Customize the hover text
+        source = "market_trend_int"
+        ) %>%
+        layout(
+          title = "ETF Sector Price Trends",
+          xaxis = list(title = "Date"),
+          yaxis = list(title = "Price"),
+          legend = list(
+            itemclick = "toggleothers",   # Default click: Toggle others while isolating the clicked line
+            itemdoubleclick = "toggleall" # Double-click: Show all lines
+          )
+        ) %>%
+        config(
+          displaylogo = FALSE                        # Hide Plotly logo
+        )
+    }else{
+      plot_ly(
+        shared_sector_data,
+        x = ~Date,
+        y = ~Volume,
+        color = ~Sector,
+        colors = "RdYlBu", 
+        type = "scatter",
+        mode = "lines",  # Adding markers for better hover interaction
+        hoverinfo = "text",  # Show custom hover text
+        text = ~paste("Sector: ", Sector, "<br>Date: ", Date, "<br>Volume: ", round(Volume, 2)),  # Customize the hover text
+        source = "market_trend_int"
+        ) %>%
+        layout(
+          title = "ETF Sector Price Trends",
+          xaxis = list(title = "Date"),
+          yaxis = list(title = "Volume"),
+          legend = list(
+            itemclick = "toggleothers",   # Default click: Toggle others while isolating the clicked line
+            itemdoubleclick = "toggleall" # Double-click: Show all lines
+          )
+        ) %>%
+        config(
+          displaylogo = FALSE                        # Hide Plotly logo
+        )
+    }
+  })
+
+  # Reactive object to store the hover data
+  hover_data <- reactiveVal(NULL)
   
-  output$sector_compare <-DT::renderDT(expr =
+  # Observe hover event and store the hovered sector
+  observeEvent({
+    event_data(event = "plotly_hover",
+               source = "market_trend_int",
+               session = shiny::getDefaultReactiveDomain())
+  }, {
+    hover_info <- event_data(event = "plotly_hover",
+               source = "market_trend_int",
+               session = shiny::getDefaultReactiveDomain())
+    if (!is.null(hover_info) && length(hover_info$key) > 0) {
+      # Extract sector from hover data
+      sector_hovered <- list(key = unlist(hover_info$key), date = unlist(hover_info$x))
+      hover_data(sector_hovered)
+    }
+  })
+  
+  # Render the filtered table based on hover data
+  output$filtered_table <- DT::renderDT({
+    if(input$graph_type == "Price"){
+        filtered_data <- sector_data_prepped() %>% mutate(Price = round(Price, 2), Previous = lag(Price), Change = round((Price - Previous), 2), `Change(%)` = round(100*((Price - Previous)/Previous), 3)) %>% 
+        dplyr::select(Sector, Date, Price, Change, `Change(%)`)
+        # Filter data based on hovered sector
+        if (length(hover_data()$key) > 0) {
+          filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date)) 
+        }
+    }else{
+        filtered_data <- sector_data_prepped() %>% mutate(Volume = round(Volume, 2), Previous = lag(Volume), Change = round((Volume - Previous), 2), `Change(%)` = round(100*((Volume - Previous)/Previous), 3)) %>% 
+        dplyr::select(Sector, Date, Volume, Change, `Change(%)`)
+        # Filter data based on hovered sector
+        if (length(hover_data()$key) > 0) {
+          filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date))
+        }
+    }
+    
+    DT::datatable(filtered_data, options = list(pageLength = 11)) 
+  })
+  
+  output$sector_compare <- DT::renderDT(expr =
     
     if(input$sector_indicator == "individual")
     {

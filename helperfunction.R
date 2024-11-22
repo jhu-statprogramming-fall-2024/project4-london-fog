@@ -23,7 +23,7 @@ industry_analyze <-function(industry,start_date,end_date)
   industries = pull(distinct(SP500_all%>%filter(date=="2021-02-22")%>%pull(sector)%>%as_tibble()),value)
   index = match(industry,industries)
   
-  industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB")
+  industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
   stock <- industries_ETF[index]
   
   ## SPY Info
@@ -51,3 +51,4 @@ industry_analyze <-function(industry,start_date,end_date)
   
   result
 }
+
