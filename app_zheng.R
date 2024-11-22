@@ -228,13 +228,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                           fluidPage(
                             
                             sidebarPanel( 
-                              
-                              #radioButtons("sector_indicator", "Select Your Interested Aspect",
-                              #             c("Market Snapshot through S&P500" = "overall",
-                              #               "Other ETFs" = "individual"
-                              #               
-                              #             )),
-
                               radioButtons("graph_type", "Select Your Preferred Visualization",
                                 c("Price of Each Sector" = "Price",
                                 "Volume of Each Sector" = "Volume")),
@@ -257,7 +250,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                              br(),
                                                              tags$li(market_dis_instruction_3),
                                                              br()
-                                                             
                                                            ),
                                                            p(market_dis_instruction_4),
                                                            br(),
@@ -469,26 +461,7 @@ sector_data_prepped <- reactive({
   
   # Market Distribution Tab
   
-  output$option_dist_1 <- renderUI(
-    if (input$sector_indicator != "individual")
-    {radioButtons("graph_type", "Select Your Preferred Visualization",
-                  c("Counts of Each Sector" = "Counts",
-                    "Volume of Each Sector" = "Volume"))}
-    else{selectInput(inputId = "interested_sector", 
-                     label = "Select Your Interested Sector",
-                     choices = (distinct(SP500_all%>%filter(date=="2021-02-22")%>%pull(sector)%>%as_tibble()))$value, 
-                     selected = "Information Technology")})
   
-  
-  output$option_dist_2 <- renderUI(
-    if (input$sector_indicator == "individual")
-    {textInput(inputId = "start_date",label = "Start Date in yyyy-mm-dd",value = "2000-01-01")}
-    else{})
-  
-  output$option_dist_3<- renderUI(
-    if (input$sector_indicator == "individual")
-    {textInput(inputId = "end_date",label = "End Date in yyyy-mm-dd",value = "2020-01-01")}
-    else{})
   
   
   output$dist_graph <- renderPlot(
