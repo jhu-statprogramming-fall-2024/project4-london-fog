@@ -360,7 +360,10 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          label = "Corresponding Weights",
                          value = "0.5,0.3,0.2"
                        ),
-                       #dataTableOutput("info_compare")
+                       actionButton(
+                         "eval_port", 
+                         "Evaluate your portfolio"
+                       )
                      ),
                      
                      mainPanel(
@@ -376,6 +379,10 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                style="text-align: center;"),
                            br()
                          ),
+                         tabPanel(
+                           "Summary of Your Portfolio", 
+                           dataTableOutput("info_compare")
+                         ), 
                          tabPanel(
                            "Your Chosen Portfolio Against S&P500", 
                            #plotOutput("Comparison")
@@ -726,7 +733,32 @@ server <- function(input, output) {
     
   )
   
+  ### Understand your portfolio tab
   
+  # Default stocks
+  port_stocks <- reactiveVal(c("AAPL", "MSFT", "TSLA"))
+  
+  # Default weights
+  port_weights <- reactiveVal(c(0.5, 0.3, 0.2))
+  
+  # Update portfolio upon button click
+  observeEvent(input$eval_port, {
+    port_stocks(strsplit(input$Stocks_Port, ",")[[1]])
+    port_weights(as.numeric(strsplit(input$Weights, ",")[[1]]))
+  })
+  
+  # Portfolio summary
+  output$info_compare <- renderDataTable(
+    datatable(port_analyze(port_stocks(), port_weights()), 
+              selection = "none", 
+              rownames = FALSE),
+    options = list(pageLength = 5,
+                   lengthChange = FALSE,
+                   info = FALSE,
+                   dom='t',
+                   searching=F,
+                   sDom  = '<"top">lrt<"bottom">ip')
+  )
 }
 
 

@@ -104,10 +104,10 @@ portfolio_pick_stocks <- "Please Enter the Stock Symbol Seperated by Commas (e.x
 portfolio_stock_weights <- "Please Enter the Corresponding Weights in Order Seperated by Commas (e.x 0.6,0.4)"
 
 portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
- A portfolio will be generated based on the stock and weight inputs. The portfolio will be 
- compared with the S&P 500 from Jan.1 2000 to the present date. The annualized return and volatility of the portfolio 
- and the S&P 500 market index will be calculated and displayed in a table. 
-Users could use this tab to back test their investment strategy with the S&P 500 index."
+A portfolio will be generated based on the stock and weight inputs. 
+The portfolio will be compared with the S&P 500 from Jan.1 2000 to the present date, or from the start date of the newest stock to the present date. 
+The annualized return and volatility of the portfolio and the S&P 500 market index will be calculated and displayed in a table. 
+Users can use this tab to back test their investment strategy with the S&P 500 index."
 
 
 
