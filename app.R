@@ -334,10 +334,56 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  ),
                  
                  # Tab Understand Your Portfolio
-                 tabPanel("Understand Your Portfolio",
-                          
-                          icon = icon("search-dollar")
-                          
+                 tabPanel(
+                   "Understand Your Portfolio",
+                   
+                   icon = icon("search-dollar"), 
+                   
+                   fluidPage(
+                     sidebarPanel(
+                       titlePanel("Choose Your Own Portfolio"),
+                       tags$br(
+                         br(),
+                         p(portfolio_pick_stocks),
+                       ),
+                       textInput(
+                         inputId = "Stocks_Port",
+                         label = "Stocks in Portfolio",
+                         value = "AAPL,MSFT,TSLA"
+                       ),
+                       tags$br(
+                         br(),
+                         p(portfolio_stock_weights),
+                       ),
+                       textInput(
+                         inputId = "Weights",
+                         label = "Corresponding Weights",
+                         value = "0.5,0.3,0.2"
+                       ),
+                       #dataTableOutput("info_compare")
+                     ),
+                     
+                     mainPanel(
+                       tabsetPanel(
+                         type="tabs", 
+                         tabPanel(
+                           "Instruction",
+                           br(),
+                           p(portfolio_instruction),
+                           br(),
+                           br(),
+                           div(img(src='Trading_Graph_Chart.png',width="60%"), 
+                               style="text-align: center;"),
+                           br()
+                         ),
+                         tabPanel(
+                           "Your Chosen Portfolio Against S&P500", 
+                           #plotOutput("Comparison")
+                         )
+                       ),
+                     )
+                   )
+                   
                  ),
                  
                  # Tab Portfolio Optimization

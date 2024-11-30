@@ -97,3 +97,19 @@ into 5 different clusters based on return and volatility from 2013-2018. "
 selection_model_2<- "Return:  A net gain or loss of an investment over a specified time period, expressed as a percentage of the investment’s initial cost. "
 selection_model_3<- "Volatility:  A statistical measure of the dispersion of returns for a given security or market index. In most cases, the higher the volatility, the riskier the security."
 selection_model_4<- "K-mean clustering: A method of vector quantization, originally from signal processing, that aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean"
+
+# Tab 5
+
+portfolio_pick_stocks <- "Please Enter the Stock Symbol Seperated by Commas (e.x AAPL,MSFT)"
+portfolio_stock_weights <- "Please Enter the Corresponding Weights in Order Seperated by Commas (e.x 0.6,0.4)"
+
+portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
+ A portfolio will be generated based on the stock and weight inputs. The portfolio will be 
+ compared with the S&P 500 from Jan.1 2000 to the present date. The annualized return and volatility of the portfolio 
+ and the S&P 500 market index will be calculated and displayed in a table. 
+Users could use this tab to back test their investment strategy with the S&P 500 index."
+
+
+
+
+
