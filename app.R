@@ -38,7 +38,7 @@ SP500_info <- read_html(sp500_url) %>%
 industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
 sector_data <- tq_get(industries_ETF,from = "2010-01-01",to = Sys.Date(), get = 'stock.prices') 
 
-## Take a while to pull, so we saved it in advance
+# Take a while to pull, so we saved it in advance
 # write.csv(tq_get(SP500_info$Symbol, get = "stock.prices", from = Sys.Date()-1, to = Sys.Date()), 
 #           file = "S&P500_all.csv")
 
@@ -47,7 +47,8 @@ SP500_all <- read.csv("S&P500_all.csv")
 # Join the data with info and daily price
 SP500_all <- left_join(SP500_all, SP500_info, by = join_by(symbol == Symbol))
 
-
+# Read in all stock symbols and descriptions
+stock_symbols <- read.delim("NYSE.txt")
 
 
 ## Main APP Part
@@ -346,10 +347,22 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          br(),
                          p(portfolio_pick_stocks),
                        ),
-                       textInput(
-                         inputId = "Stocks_Port",
-                         label = "Stocks in Portfolio",
-                         value = "AAPL,MSFT,TSLA"
+                       fluidRow(
+                         column(
+                           8, 
+                           textInput(
+                             inputId = "port_stocks_txt",
+                             label = "Stocks in Portfolio",
+                             value = "AAPL,MSFT,TSLA"
+                           )
+                         ), 
+                         column(
+                           4, 
+                           actionButton(
+                             "port_stocks_selector", 
+                             "Stock selector"
+                           )
+                         )
                        ),
                        tags$br(
                          br(),
@@ -410,7 +423,84 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
 
 
 # Shiny Server Function
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  ### Stock selector: outputs user-selected stock(s) symbols to textbox
+  
+  # Initialize parameters
+  stock_sel_param <- reactiveVal(list(max_stocks = 1)) # max number of stocks that can be selected
+  
+  # Output textbox
+  stock_sel_textbox <- reactiveVal(NULL)
+  
+  # Stock symbols table
+  output$stock_symbols_table <- DT::renderDataTable(stock_symbols, 
+                                                    rownames = FALSE, 
+                                                    filter = list(position = 'top', clear = FALSE), 
+                                                    selection = "multiple",
+                                                    escape = FALSE)
+  
+  # Selector modal dialogue
+  observeEvent(stock_sel_textbox(), {
+    showModal(
+      modalDialog(
+        h3("Select your stocks"),
+        br(), 
+        p("Click on table to select stocks"), 
+        br(),
+        fluidRow(
+          column(
+            3, 
+            actionButton(
+              "stock_symbols_table_sel_none", 
+              "Deselect all", 
+              width = "100%"
+            )
+          )
+        ), 
+        br(), 
+        dataTableOutput("stock_symbols_table"),
+        textOutput("stock_sel_warning"),
+        br(),
+        actionButton("update_stock_sel", "Confirm selection"),
+        modalButton("Cancel"),
+        easyClose = FALSE, 
+        size = "l",
+        footer = NULL
+      )
+    )
+  })
+  
+  # Make proxy for controlling selected rows
+  stock_symbols_table_proxy <- DT::dataTableProxy("stock_symbols_table")
+  
+  # Deselect all of gtex trait table
+  observeEvent(input$stock_symbols_table_sel_none, {
+    stock_symbols_table_proxy %>% selectRows(NULL)
+  })
+  
+  output$stock_sel_warning <- renderText({
+    if (length(input$stock_symbols_table_rows_selected) < 1) {
+      return("You must select at least 1 stock. ")
+    } else if (length(input$stock_symbols_table_rows_selected) > stock_sel_param()$max_stocks) {
+      return(paste("You selected", length(input$stock_symbols_table_rows_selected), 
+                   "stock(s). You can only select up to", stock_sel_param()$max_stocks, "stock(s). "))
+    }
+  })
+  
+  # Update stock selection
+  observeEvent(input$update_stock_sel, {
+    # Check that at least 2 stocks selected
+    if ((length(input$stock_symbols_table_rows_selected) >= 1) & 
+        (length(input$stock_symbols_table_rows_selected) <= stock_sel_param()$max_stocks)) {
+      updateTextInput(session, 
+                      stock_sel_textbox(), 
+                      value = paste(stock_symbols$Symbol[input$stock_symbols_table_rows_selected], 
+                                    collapse = ","))
+      stock_sel_textbox(NULL)
+      removeModal()
+    }
+  })
 
   sector_data_prepped <- reactive({
     sector_data %>%
@@ -746,9 +836,15 @@ server <- function(input, output) {
   # Default weights
   port_weights <- reactiveVal(c(0.5, 0.3, 0.2))
   
+  # Use stock selector to select portfolio stocks
+  observeEvent(input$port_stocks_selector, {
+    stock_sel_param(list(max_stocks = 5))
+    stock_sel_textbox("port_stocks_txt")
+  })
+  
   # Update portfolio upon button click
   observeEvent(input$eval_port, {
-    port_stocks(strsplit(input$Stocks_Port, ",")[[1]])
+    port_stocks(strsplit(input$port_stocks_txt, ",")[[1]])
     port_weights(as.numeric(strsplit(input$Weights, ",")[[1]]))
   })
   
