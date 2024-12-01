@@ -106,10 +106,6 @@ port_analyze <-function(stocks, weights) {
     store[i] =  store[i]*weights[i]
   }
   store_port <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store)))) %>% select(Portfolio)
-  store_port <- (store_port-lag(store_port))/lag(store_port) 
-  mean_port <- lapply(store_port, mean, na.rm = TRUE)
-  annual_port <- ((mean_port[[1]] + 1)^252) - 1
-  sd_port <- lapply(store_port, sd, na.rm = TRUE)[[1]]*252^0.5
   
   ## SPY Info
   min_port_date <- price_data %>% pull(date) %>% min()
@@ -117,13 +113,17 @@ port_analyze <-function(stocks, weights) {
     tq_transmute(select = adjusted, mutate_fun = periodReturn, period = 'daily', col_rename = 'ret', type = 'log') %>%
     drop_na() %>% 
     filter(date >= min_port_date)
-  store_spy <- cumprod(price_data_SPY[-1] + 1)
-  store_ret <- (store_spy-lag(store_spy))/lag(store_spy)
-  mean_SPY <- map_dbl(store_ret, mean, na.rm = TRUE)
-  annual_SPY <- ((mean_SPY + 1)^252) - 1
-  sd_SPY <- map_dbl(store_ret, sd, na.rm = TRUE)*252^0.5
+  store_spy <- cumprod(price_data_SPY %>% pull(ret) + 1)
   
-  result<- data.frame("Investment" = c("SPY","Portfolio"), "Annualized_Return" = c(annual_SPY,annual_port), "Annualized_Volatility" = c(sd_SPY,sd_port))
+  store_df <- data.frame(SPY = store_spy, 
+                         Portfolio = store_port)
+  store_df <- (store_df-lag(store_df))/lag(store_df)
+  result <- map_df(store_df, function(x) {
+    mean_ret <- mean(x, na.rm = TRUE)
+    sd_ret <- sd(x, na.rm = TRUE)
+    c("Annualized_Return" = ((mean_ret + 1)^252) - 1, 
+      "Annualized_Volatility" = sd_ret * 252 ^ 0.5)
+  }) %>% mutate(Investment = colnames(store_df), .before = Annualized_Return)
   
   result
   

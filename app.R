@@ -381,7 +381,12 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          ),
                          tabPanel(
                            "Summary of Your Portfolio", 
-                           dataTableOutput("info_compare")
+                           br(), 
+                           h3("Portfolio Composition"),
+                           dataTableOutput("port_info"), 
+                           br(),
+                           h3("Portfolio Summary"),
+                           dataTableOutput("port_summary")
                          ), 
                          tabPanel(
                            "Your Chosen Portfolio Against S&P500", 
@@ -747,17 +752,32 @@ server <- function(input, output) {
     port_weights(as.numeric(strsplit(input$Weights, ",")[[1]]))
   })
   
+  # Portfolio information
+  output$port_info <- renderDataTable(
+    datatable(data.frame(stocks = port_stocks(), 
+                         weights = port_weights()), 
+              selection = "none", 
+              rownames = FALSE, 
+              options = list(pageLength = 5,
+                             lengthChange = FALSE,
+                             info = FALSE,
+                             dom='t',
+                             searching=F,
+                             sDom  = '<"top">lrt<"bottom">ip'))
+  )
+  
   # Portfolio summary
-  output$info_compare <- renderDataTable(
+  output$port_summary <- renderDataTable(
     datatable(port_analyze(port_stocks(), port_weights()), 
               selection = "none", 
-              rownames = FALSE),
-    options = list(pageLength = 5,
-                   lengthChange = FALSE,
-                   info = FALSE,
-                   dom='t',
-                   searching=F,
-                   sDom  = '<"top">lrt<"bottom">ip')
+              rownames = FALSE, 
+              options = list(pageLength = 5,
+                             lengthChange = FALSE,
+                             info = FALSE,
+                             dom='t',
+                             searching=F,
+                             sDom  = '<"top">lrt<"bottom">ip'))
+    
   )
 }
 
