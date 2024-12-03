@@ -62,29 +62,29 @@ stock_symbols <- read.delim("NYSE.txt")
 
 # Shiny ui function
 
-ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("superhero"),
+ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("sandstone"),
                  
-                 tags$style(HTML("
-                    /* Change font color of the DataTable body and header */
-                    .dataTable tbody td {
-                      color: white !important;
-                    }
-                    .dataTable thead th {
-                      color: white !important;
-                    }
-                    /* Change text color for pagination and search bar */
-                    .dataTables_wrapper .dataTables_paginate .paginate_button,
-                    .dataTables_wrapper .dataTables_info,
-                    .dataTables_wrapper .dataTables_length label,
-                    .dataTables_wrapper .dataTables_filter label {
-                      color: white !important;
-                    }
-                    .dataTables_wrapper .dataTables_filter input {
-                      color: white !important;
-                      background-color: black !important; /* Adjust background color of search box if needed */
-                    }
-                  ")),
-                 
+                 # tags$style(HTML("
+                 #    /* Change font color of the DataTable body and header */
+                 #    .dataTable tbody td {
+                 #      color: white !important;
+                 #    }
+                 #    .dataTable thead th {
+                 #      color: white !important;
+                 #    }
+                 #    /* Change text color for pagination and search bar */
+                 #    .dataTables_wrapper .dataTables_paginate .paginate_button,
+                 #    .dataTables_wrapper .dataTables_info,
+                 #    .dataTables_wrapper .dataTables_length label,
+                 #    .dataTables_wrapper .dataTables_filter label {
+                 #      color: white !important;
+                 #    }
+                 #    .dataTables_wrapper .dataTables_filter input {
+                 #      color: white !important;
+                 #      background-color: black !important; /* Adjust background color of search box if needed */
+                 #    }
+                 #  ")),
+                 # 
                  
                  # Tab Intro
                  tabPanel("Introduction of this App",
