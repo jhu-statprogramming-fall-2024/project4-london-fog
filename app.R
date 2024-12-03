@@ -105,7 +105,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  
                  
                  # Tab Data Summary
-
+                 
                  tabPanel("Data Summary",
                           
                           icon = icon("atlas"),
@@ -220,7 +220,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                              p("Daily Stock Datatable"),
                                                      ),
                                                      DT::DTOutput("summary_stock_individual") 
-                                                     ))
+                                            ))
                               )
                             )
                           )
@@ -239,15 +239,15 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             sidebarPanel( 
                               
                               radioButtons("graph_type", "Select Your Preferred Visualization",
-                                c("Price of Each Sector" = "Price",
-                                "Volume of Each Sector" = "Volume")),
-                    # Time Frame 
-                                sliderInput("Trend_Time_market",
-                                            "Select Your Interested Time Frame",
-                                            value = c(2015,2023),
-                                            min = 2014,
-                                            max = 2024, 
-                                            sep = "")
+                                           c("Price of Each Sector" = "Price",
+                                             "Volume of Each Sector" = "Volume")),
+                              # Time Frame 
+                              sliderInput("Trend_Time_market",
+                                          "Select Your Interested Time Frame",
+                                          value = c(2015,2023),
+                                          min = 2014,
+                                          max = 2024, 
+                                          sep = "")
                             ),
                             
                             mainPanel(tabsetPanel(type = "tabs",
@@ -266,14 +266,14 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                            p(market_dis_instruction_5),
                                                            br(),
                                                            fluidRow(
-                                                            column(3, uiOutput("market_dis_instruction_6")),  
-                                                            column(9, plotOutput("dist_graph")))
-     
+                                                             column(3, uiOutput("market_dis_instruction_6")),  
+                                                             column(9, plotOutput("dist_graph")))
+                                                           
                                                   ),
                                                   tabPanel("Sector Plot", 
                                                            plotlyOutput("sector_plot"),
                                                            DT::DTOutput("filtered_table")))
-     
+                                      
                             ))
                           
                  ),
@@ -511,15 +511,15 @@ server <- function(input, output, session) {
       removeModal()
     }
   })
-
+  
   sector_data_prepped <- reactive({
     sector_data %>%
-    dplyr::select(symbol, date, adjusted, volume) %>%
-    rename(Sector = symbol, Date = date, Price = adjusted, Volume = volume) %>%
-    filter(
+      dplyr::select(symbol, date, adjusted, volume) %>%
+      rename(Sector = symbol, Date = date, Price = adjusted, Volume = volume) %>%
+      filter(
         Date >= as.Date(paste0(input$Trend_Time_market[1], "-01-01")) & 
-        Date <= as.Date(paste0(input$Trend_Time_market[2], "-01-01"))
-    ) 
+          Date <= as.Date(paste0(input$Trend_Time_market[2], "-01-01"))
+      ) 
   })
   
   # Data summary Tab 
@@ -531,21 +531,21 @@ server <- function(input, output, session) {
     }
   })
   output$sp500_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
-                                          options = list(pageLength = 10, lengthChange = FALSE, searching = F))
+                                     options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   output$nasdaq_table <- DT::renderDT(expr = Nasdaq_info,
-                                     options = list(pageLength = 10, lengthChange = FALSE, searching = F))
+                                      options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   
   output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
-                                                 get = 'stock.prices',
-                                                 from = Sys.Date()-365*10, to = Sys.Date()) %>% 
-                                            mutate(Stock = symbol, Date = date,
-                                                   `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
-                                            dplyr::select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
-                                            arrange(desc(Date)) %>% 
-                                            mutate(across(where(is.numeric), ~ round(.x, 3))),
-                                          options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
+                                                     get = 'stock.prices',
+                                                     from = Sys.Date()-365*10, to = Sys.Date()) %>% 
+                                         mutate(Stock = symbol, Date = date,
+                                                `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
+                                         dplyr::select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
+                                         arrange(desc(Date)) %>% 
+                                         mutate(across(where(is.numeric), ~ round(.x, 3))),
+                                       options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
   
   # Stock Trend Tab
   
@@ -564,6 +564,7 @@ server <- function(input, output, session) {
     if (input$market_indicator == "individual")
     {radioButtons("stock_stats", "Select specific stock market information",
                   c("Daily Investment Worth" = "price",
+                    "Daily Investment Change in Percentage" = "percent",
                     "Daily Investment Worth Comparing with S&P 500" = "Compare",
                     "Daily Transaction Volume" = "volume"))}
     else{})
@@ -571,14 +572,14 @@ server <- function(input, output, session) {
   output$summary_stock_individual <- DT::renderDT(
     if (input$market_indicator == "individual")
     {expr = tq_get(c(input$Select_Stock_01,input$Select_Stock_02), 
-                    get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
-        mutate(year=year(date), month = month(date))%>%
-        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-        mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
-        dplyr::select(Stock, Date, Price, Volume) %>% 
-        arrange(desc(Date)) %>% 
-        mutate(across(where(is.numeric), ~ round(.x, 3)))}
-      
+                   get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
+      mutate(year=year(date), month = month(date))%>%
+      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+      mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
+      dplyr::select(Stock, Date, Price, Volume) %>% 
+      arrange(desc(Date)) %>% 
+      mutate(across(where(is.numeric), ~ round(.x, 3)))}
+    
     else if (input$market_indicator == "Market")
     {expr = tq_get(c("SPY","QQQ", "VTI"), 
                    get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
@@ -590,22 +591,22 @@ server <- function(input, output, session) {
       mutate(across(where(is.numeric), ~ round(.x, 3)))}
     
     ,options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip')
-    )
-      
+  )
+  
   
   output$stock_trend_plot <- renderPlotly(
     if (input$market_indicator == "individual" & input$stock_stats == "price")
-    # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-    #     mutate(year=year(date), month = month(date))%>%
-    #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-    #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-    #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
-    #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-    #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+      #     mutate(year=year(date), month = month(date))%>%
+      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+      #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
+      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
-      stock_data %>% plot_ly(
+    stock_data %>% plot_ly(
       x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines', 
       text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
       hoverinfo = 'text'
@@ -613,51 +614,73 @@ server <- function(input, output, session) {
       layout(
         title = "Price of a Single Share of Stock", xaxis = list(title = ""), yaxis = list(title = "Single Share Price"),
         shapes = list(
-            type = "line",
-            x0 = min(stock_data$date), x1 = max(stock_data$date),
-            y0 = input$target_value, y1 = input$target_value,
-            line = list(color = "black", dash = "dash")
+          type = "line",
+          x0 = min(stock_data$date), x1 = max(stock_data$date),
+          y0 = input$target_value, y1 = input$target_value,
+          line = list(color = "black", dash = "dash")
         ),
         legend = list(title = list(text = "Stock"))
       ) %>% config(displaylogo = FALSE)}
     
     
     else if (input$market_indicator == "individual" & input$stock_stats == "volume")
-    # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-    #     mutate(year=year(date), month = month(date))%>%
-    #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-    #     ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
-    #     labs(x="", y="Daily Transaction (in millions)",color="Stock", title = "Daily transaction volume of stock")+
-    #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-    #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+      #     mutate(year=year(date), month = month(date))%>%
+      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+      #     ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
+      #     labs(x="", y="Daily Transaction (in millions)",color="Stock", title = "Daily transaction volume of stock")+
+      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-            mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
-            filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
-      stock_data %>% plot_ly(
+      mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
+      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
+    stock_data %>% plot_ly(
       x = ~date, y = ~volume_adj, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
       text = ~paste('Date:', date, '<br>Daily Transcation:', round(volume_adj,3), 'millions', '<br>Stock:', symbol),
       hoverinfo = 'text'
     ) %>%
-        layout(
-          title = "Daily transaction volume of stock", xaxis = list(title = ""), yaxis = list(title = "Daily Transaction (in millions)"),
-          shapes = list(
-            type = "line",
-            x0 = min(stock_data$date), x1 = max(stock_data$date),
-            y0 = input$target_value, y1 = input$target_value,
-            line = list(color = "black", dash = "dash")
-          ),
-          legend = list(title = list(text = "Stock"))
-        ) %>% config(displaylogo = FALSE)}
+      layout(
+        title = "Daily transaction volume of stock", xaxis = list(title = ""), yaxis = list(title = "Daily Transaction (in millions)"),
+        shapes = list(
+          type = "line",
+          x0 = min(stock_data$date), x1 = max(stock_data$date),
+          y0 = input$target_value, y1 = input$target_value,
+          line = list(color = "black", dash = "dash")
+        ),
+        legend = list(title = list(text = "Stock"))
+      ) %>% config(displaylogo = FALSE)}
+    
+    
+    else if (input$market_indicator == "individual" & input$stock_stats == "percent")
+    {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+      mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
+      mutate(perc_change = abs(diff(close)/lag(close)*100)) %>% 
+      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2], date < Sys.Date()-7) 
+    stock_data %>% plot_ly(
+      x = ~date, y = ~perc_change, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
+      text = ~paste('Date:', date, '<br>Percentage Change:', round(perc_change,3), '%', '<br>Stock:', symbol),
+      hoverinfo = 'text'
+    ) %>%
+      layout(
+        title = "Daily change of stock in percentage", xaxis = list(title = ""), yaxis = list(title = "Change in percentage"),
+        shapes = list(
+          type = "line",
+          x0 = min(stock_data$date), x1 = max(stock_data$date),
+          y0 = input$target_value, y1 = input$target_value,
+          line = list(color = "black", dash = "dash")
+        ),
+        legend = list(title = list(text = "Stock"))
+      ) %>% config(displaylogo = FALSE)}
     
     
     else if (input$market_indicator == "individual" & input$stock_stats == "Compare")
-    # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
-    #     mutate(year=year(date), month = month(date))%>%
-    #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-    #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-    #     labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
-    #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-    #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
+      #     mutate(year=year(date), month = month(date))%>%
+      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+      #     labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
+      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
@@ -679,12 +702,12 @@ server <- function(input, output, session) {
     
     # Market subplot
     else if (input$market_indicator == "Market")
-    # {tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-    #     mutate(year=year(date), month = month(date))%>%
-    #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-    #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-    #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
-    #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      # {tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+      #     mutate(year=year(date), month = month(date))%>%
+      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+      #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
+      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     {stock_data = tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
@@ -704,39 +727,39 @@ server <- function(input, output, session) {
         ),
         legend = list(title = list(text = "Stock"))
       ) %>% config(displaylogo = FALSE)}
-      
-      
-      
+    
+    
+    
     
   )
   
-
+  
   
   # Market Distribution Tab
   output$dist_graph <- renderPlot(
-      SP500_info %>%
-        mutate(sector = `GICS Sector`) %>%
-        group_by(sector) %>%
-        mutate(count = n()) %>%
-        dplyr::select(sector, count) %>%
-        distinct() %>%
-        ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
-        geom_bar(stat = "identity", show.legend = FALSE, width = 0.8) +  # Adjust bar width and hide legend
-        geom_text(aes(label = count), vjust = -0.5, size = 4, fontface = "bold", color = "black") +  # Add count labels on bars
-        scale_fill_brewer(palette = "Set3") +  # Use a more readable color palette
-        theme_minimal() +  # A cleaner background
-        labs(
-          x = '', 
-          y = 'Counts Among S&P500', 
-          title = "Distribution of Various Sectors Among S&P500 Companies"
-        ) +
-        theme(
-          plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
-          axis.text.x = element_text(face = "bold", size = 10, angle = -45, hjust = 1),  # Improve text angle
-          axis.title = element_text(size = 12),
-          axis.text.y = element_text(size = 12),
-          plot.margin = margin(10, 20, 10, 20)  # Adjust margins
-        )
+    SP500_info %>%
+      mutate(sector = `GICS Sector`) %>%
+      group_by(sector) %>%
+      mutate(count = n()) %>%
+      dplyr::select(sector, count) %>%
+      distinct() %>%
+      ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
+      geom_bar(stat = "identity", show.legend = FALSE, width = 0.8) +  # Adjust bar width and hide legend
+      geom_text(aes(label = count), vjust = -0.5, size = 4, fontface = "bold", color = "black") +  # Add count labels on bars
+      scale_fill_brewer(palette = "Set3") +  # Use a more readable color palette
+      theme_minimal() +  # A cleaner background
+      labs(
+        x = '', 
+        y = 'Counts Among S&P500', 
+        title = "Distribution of Various Sectors Among S&P500 Companies"
+      ) +
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+        axis.text.x = element_text(face = "bold", size = 10, angle = -45, hjust = 1),  # Improve text angle
+        axis.title = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        plot.margin = margin(10, 20, 10, 20)  # Adjust margins
+      )
   )
   output$market_dis_instruction_6 <- renderUI({
     HTML(market_dis_instruction_6)
@@ -746,7 +769,7 @@ server <- function(input, output, session) {
     
     shared_sector_data <- SharedData$new(sector_data_prepped(), key = ~Sector)
     if(input$graph_type == "Price"){
-        plot_ly(
+      plot_ly(
         shared_sector_data,
         x = ~Date,
         y = ~Price,
@@ -757,7 +780,7 @@ server <- function(input, output, session) {
         hoverinfo = "text",  # Show custom hover text
         text = ~paste("Sector: ", Sector, "<br>Date: ", Date, "<br>Price: $", round(Price, 2)),  # Customize the hover text
         source = "market_trend_int"
-        ) %>%
+      ) %>%
         layout(
           title = "ETF Sector Price Trends",
           xaxis = list(title = "Date"),
@@ -782,7 +805,7 @@ server <- function(input, output, session) {
         hoverinfo = "text",  # Show custom hover text
         text = ~paste("Sector: ", Sector, "<br>Date: ", Date, "<br>Volume: ", round(Volume, 2)),  # Customize the hover text
         source = "market_trend_int"
-        ) %>%
+      ) %>%
         layout(
           title = "ETF Sector Price Trends",
           xaxis = list(title = "Date"),
@@ -797,7 +820,7 @@ server <- function(input, output, session) {
         )
     }
   })
-
+  
   # Reactive object to store the hover data
   hover_data <- reactiveVal(NULL)
   
@@ -808,8 +831,8 @@ server <- function(input, output, session) {
                session = shiny::getDefaultReactiveDomain())
   }, {
     hover_info <- event_data(event = "plotly_hover",
-               source = "market_trend_int",
-               session = shiny::getDefaultReactiveDomain())
+                             source = "market_trend_int",
+                             session = shiny::getDefaultReactiveDomain())
     if (!is.null(hover_info) && length(hover_info$key) > 0) {
       # Extract sector from hover data
       sector_hovered <- list(key = unlist(hover_info$key), date = unlist(hover_info$x))
@@ -820,32 +843,32 @@ server <- function(input, output, session) {
   # Render the filtered table based on hover data
   output$filtered_table <- DT::renderDT({
     if(input$graph_type == "Price"){
-        filtered_data <- sector_data_prepped() %>% mutate(Price = round(Price, 2), Previous = lag(Price), Change = round((Price - Previous), 2), `Change(%)` = round(100*((Price - Previous)/Previous), 3)) %>% 
+      filtered_data <- sector_data_prepped() %>% mutate(Price = round(Price, 2), Previous = lag(Price), Change = round((Price - Previous), 2), `Change(%)` = round(100*((Price - Previous)/Previous), 3)) %>% 
         dplyr::select(Sector, Date, Price, Change, `Change(%)`)
-        # Filter data based on hovered sector
-        if (length(hover_data()$key) > 0) {
-          filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date)) 
-        }
+      # Filter data based on hovered sector
+      if (length(hover_data()$key) > 0) {
+        filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date)) 
+      }
     }else{
-        filtered_data <- sector_data_prepped() %>% mutate(Volume = round(Volume, 2), Previous = lag(Volume), Change = round((Volume - Previous), 2), `Change(%)` = round(100*((Volume - Previous)/Previous), 3)) %>% 
+      filtered_data <- sector_data_prepped() %>% mutate(Volume = round(Volume, 2), Previous = lag(Volume), Change = round((Volume - Previous), 2), `Change(%)` = round(100*((Volume - Previous)/Previous), 3)) %>% 
         dplyr::select(Sector, Date, Volume, Change, `Change(%)`)
-        # Filter data based on hovered sector
-        if (length(hover_data()$key) > 0) {
-          filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date))
-        }
+      # Filter data based on hovered sector
+      if (length(hover_data()$key) > 0) {
+        filtered_data <- filtered_data %>% filter(Sector %in% hover_data()$key, Date %in% as.Date(hover_data()$date))
+      }
     }
     
     DT::datatable(filtered_data, options = list(pageLength = 11)) 
   })
   
   output$sector_compare <- DT::renderDT(expr =
-    
-    if(input$sector_indicator == "individual")
-    {
-      industry_analyze(input$interested_sector,input$start_date,input$end_date)
-    },
-    options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip')
-    
+                                          
+                                          if(input$sector_indicator == "individual")
+                                          {
+                                            industry_analyze(input$interested_sector,input$start_date,input$end_date)
+                                          },
+                                        options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip')
+                                        
   )
   
   ### Understand your portfolio tab
