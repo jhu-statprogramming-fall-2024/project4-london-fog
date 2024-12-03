@@ -105,7 +105,7 @@ port_analyze <-function(stocks, weights) {
   for (i in (1:ncol(store))) {
     store[i] =  store[i]*weights[i]
   }
-  store_port <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store)))) %>% select(Portfolio)
+  store_port <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store)))) %>% dplyr::select(Portfolio)
   
   ## SPY Info
   min_port_date <- price_data %>% pull(date) %>% min()
