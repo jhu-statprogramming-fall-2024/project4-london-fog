@@ -539,7 +539,7 @@ server <- function(input, output, session) {
   
   output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
                                                  get = 'stock.prices',
-                                                 from = Sys.Date()-252*10, to = Sys.Date()) %>% 
+                                                 from = Sys.Date()-365*10, to = Sys.Date()) %>% 
                                             mutate(Stock = symbol, Date = date,
                                                    `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
                                             dplyr::select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
