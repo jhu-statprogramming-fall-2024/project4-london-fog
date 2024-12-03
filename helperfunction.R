@@ -1,4 +1,42 @@
+# theme selector
 
+themeSelector <- function() {
+  div(
+    div(
+      selectInput("shinytheme-selector", "Choose a theme",
+                  c("sandstone", shinythemes:::allThemes()),
+                  selectize = FALSE
+      )
+    ),
+    tags$script(
+      "$('#shinytheme-selector')
+        .on('change', function(el) {
+        var allThemes = $(this).find('option').map(function() {
+        if ($(this).val() === 'default')
+        return 'bootstrap';
+        else
+        return $(this).val();
+        });
+        // Find the current theme
+        var curTheme = el.target.value;
+        if (curTheme === 'default') {
+        curTheme = 'bootstrap';
+        curThemePath = 'shared/bootstrap/css/bootstrap.min.css';
+        } else {
+        curThemePath = 'shinythemes/css/' + curTheme + '.min.css';
+        }
+        // Find the <link> element with that has the bootstrap.css
+        var $link = $('link').filter(function() {
+        var theme = $(this).attr('href');
+        theme = theme.replace(/^.*\\//, '').replace(/(\\.min)?\\.css$/, '');
+        return $.inArray(theme, allThemes) !== -1;
+        });
+        // Set it to the correct path
+        $link.attr('href', curThemePath);
+        });"
+    )
+  )
+}
 
 # This function is used to plot market trend in each different sector 
 industry_trend <-function(industry,start_date,end_date)

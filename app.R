@@ -62,7 +62,7 @@ stock_symbols <- read.delim("NYSE.txt")
 
 # Shiny ui function
 
-ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("sandstone"),
+ui <- navbarPage("How to Survive in the U.S. Stock Market", themeSelector(), theme = shinytheme("sandstone"),
                  
                  # tags$style(HTML("
                  #    /* Change font color of the DataTable body and header */
