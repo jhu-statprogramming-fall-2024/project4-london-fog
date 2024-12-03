@@ -511,7 +511,7 @@ server <- function(input, output, session) {
 
   sector_data_prepped <- reactive({
     sector_data %>%
-    select(symbol, date, adjusted, volume) %>%
+    dplyr::select(symbol, date, adjusted, volume) %>%
     rename(Sector = symbol, Date = date, Price = adjusted, Volume = volume) %>%
     filter(
         Date >= as.Date(paste0(input$Trend_Time_market[1], "-01-01")) & 
@@ -529,7 +529,7 @@ server <- function(input, output, session) {
                                                  from = Sys.Date()-365*10, to = Sys.Date()) %>% 
                                             mutate(Stock = symbol, Date = date,
                                                    `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
-                                            select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
+                                            dplyr::select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
                                             arrange(desc(Date)) %>% 
                                             mutate(across(where(is.numeric), ~ round(.x, 3))),
                                           options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip'))
@@ -562,7 +562,7 @@ server <- function(input, output, session) {
         mutate(year=year(date), month = month(date))%>%
         filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
         mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
-        select(Stock, Date, Price, Volume) %>% 
+        dplyr::select(Stock, Date, Price, Volume) %>% 
         arrange(desc(Date)) %>% 
         mutate(across(where(is.numeric), ~ round(.x, 3)))}
       
@@ -572,7 +572,7 @@ server <- function(input, output, session) {
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
       mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
-      select(Stock, Date, Price, Volume) %>% 
+      dplyr::select(Stock, Date, Price, Volume) %>% 
       arrange(desc(Date)) %>% 
       mutate(across(where(is.numeric), ~ round(.x, 3)))}
     
@@ -705,7 +705,7 @@ server <- function(input, output, session) {
         mutate(sector = `GICS Sector`) %>%
         group_by(sector) %>%
         mutate(count = n()) %>%
-        select(sector, count) %>%
+        dplyr::select(sector, count) %>%
         distinct() %>%
         ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
         geom_bar(stat = "identity", show.legend = FALSE, width = 0.8) +  # Adjust bar width and hide legend
