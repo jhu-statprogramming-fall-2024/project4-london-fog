@@ -33,12 +33,20 @@ sp500_table <- read_html(sp500_url) %>%
   html_table(fill = TRUE) %>%
   .[[1]]  # The first table contains the S&P 500 list
 sp500_table
+
+Nasdaq100_url <- "https://en.wikipedia.org/wiki/Nasdaq-100#Components"
+Nasdaq_info <- read_html(Nasdaq100_url) %>%
+  html_table(fill = TRUE) %>%
+  .[[5]]  # The fifth table
 ```
 
 
 ```{r}
 write.csv(tq_get(sp500_table$Symbol, get = "stock.prices", from = Sys.Date()-1, to = Sys.Date()), 
           file = "S&P500_all.csv")
+
+write.csv(tq_get(Nasdaq_info$Symbol, get = "stock.prices", from = Sys.Date()-1, to = Sys.Date()), 
+          file = "Nasdaq100_all.csv")
 ```
 
 ```{r}

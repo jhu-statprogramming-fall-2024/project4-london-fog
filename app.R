@@ -35,6 +35,13 @@ SP500_info <- read_html(sp500_url) %>%
   html_table(fill = TRUE) %>%
   .[[1]]  # The first table contains the S&P 500 list
 
+# Get Nasdaq-100 from Wikipedia
+Nasdaq100_url <- "https://en.wikipedia.org/wiki/Nasdaq-100#Components"
+Nasdaq_info <- read_html(Nasdaq100_url) %>%
+  html_table(fill = TRUE) %>%
+  .[[5]]  # The fifth table
+
+
 industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
 sector_data <- tq_get(industries_ETF,from = "2010-01-01",to = Sys.Date(), get = 'stock.prices') 
 
