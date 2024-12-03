@@ -116,7 +116,9 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                     p(data_summary_2),
                             ),
                             
-                            DT::DTOutput("Overall_table"),
+                            selectInput("ETF_choice", "Select ETF", choices = c("SPY-500", "Nasdaq-100")),
+                            
+                            uiOutput("overall_table_ui"),
                             
                             tags$br(br(),
                                     p(data_summary_3),
@@ -520,13 +522,23 @@ server <- function(input, output, session) {
   })
   
   # Data summary Tab 
-  
-  output$Overall_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
+  output$overall_table_ui <- renderUI({
+    if (input$ETF_choice == "SPY-500") {
+      dataTableOutput("sp500_table")
+    } else {
+      dataTableOutput("nasdaq_table")
+    }
+  })
+  output$sp500_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
                                           options = list(pageLength = 10, lengthChange = FALSE, searching = F))
+  
+  output$nasdaq_table <- DT::renderDT(expr = Nasdaq_info,
+                                     options = list(pageLength = 10, lengthChange = FALSE, searching = F))
+  
   
   output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
                                                  get = 'stock.prices',
-                                                 from = Sys.Date()-365*10, to = Sys.Date()) %>% 
+                                                 from = Sys.Date()-252*10, to = Sys.Date()) %>% 
                                             mutate(Stock = symbol, Date = date,
                                                    `Open Price`= open, `Close Price`= close, `Highest Price`= high, `Lowest Price`= low, `Volume` = volume) %>% 
                                             dplyr::select(Stock, Date, `Open Price`, `Close Price`, `Highest Price`, `Lowest Price`, `Volume`) %>% 
