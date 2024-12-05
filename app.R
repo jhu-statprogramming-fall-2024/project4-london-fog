@@ -564,7 +564,7 @@ server <- function(input, output, session) {
     if (input$market_indicator == "individual")
     {radioButtons("stock_stats", "Select specific stock market information",
                   c("Daily Investment Worth" = "price",
-                    "Daily Investment Change in Percentage" = "percent",
+                    # "Daily Investment Change in Percentage" = "percent",
                     "Daily Investment Worth Comparing with S&P 500" = "Compare",
                     "Daily Transaction Volume" = "volume"))}
     else{})
