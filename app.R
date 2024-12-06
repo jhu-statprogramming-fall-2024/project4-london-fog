@@ -361,7 +361,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                            8, 
                            textInput(
                              inputId = "port_stocks_txt",
-                             label = "Stocks in Portfolio",
+                             label = NULL,
                              value = "AAPL,MSFT,TSLA"
                            )
                          ), 
