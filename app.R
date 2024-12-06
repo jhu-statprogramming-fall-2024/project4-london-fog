@@ -473,7 +473,7 @@ server <- function(input, output, session) {
         textOutput("stock_sel_warning"),
         br(),
         actionButton("update_stock_sel", "Confirm selection"),
-        modalButton("Cancel"),
+        actionButton("cancel_stock_sel", "Cancel"),
         easyClose = FALSE, 
         size = "l",
         footer = NULL
@@ -510,6 +510,12 @@ server <- function(input, output, session) {
       stock_sel_textbox(NULL)
       removeModal()
     }
+  })
+  
+  # Cancel stock selection
+  observeEvent(input$cancel_stock_sel, {
+    stock_sel_textbox(NULL)
+    removeModal()
   })
   
   sector_data_prepped <- reactive({
