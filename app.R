@@ -455,7 +455,8 @@ server <- function(input, output, session) {
       modalDialog(
         h3("Select your stocks"),
         br(), 
-        p("Click on table to select stocks"), 
+        p("Click on table to select stocks. "),
+        textOutput("stock_sel_text"),
         br(),
         fluidRow(
           column(
@@ -469,7 +470,7 @@ server <- function(input, output, session) {
         ), 
         br(), 
         dataTableOutput("stock_symbols_table"),
-        textOutput("stock_sel_warning"),
+        span(textOutput("stock_sel_warning"), style="color:red"),
         br(),
         actionButton("update_stock_sel", "Confirm selection"),
         actionButton("cancel_stock_sel", "Cancel"),
@@ -480,6 +481,17 @@ server <- function(input, output, session) {
     )
   })
   
+  # Current selection text
+  output$stock_sel_text <- renderText({
+    if (length(input$stock_symbols_table_rows_selected)) {
+      paste("You have selected", 
+            paste(stock_symbols$symbol[input$stock_symbols_table_rows_selected], 
+                  collapse = ", "))
+    } else {
+      "You have not selected any stocks. "
+    }
+  })
+  
   # Make proxy for controlling selected rows
   stock_symbols_table_proxy <- DT::dataTableProxy("stock_symbols_table")
   
@@ -488,12 +500,17 @@ server <- function(input, output, session) {
     stock_symbols_table_proxy %>% selectRows(NULL)
   })
   
+  # Warn users that they must select at least 1 stock
   output$stock_sel_warning <- renderText({
     if (length(input$stock_symbols_table_rows_selected) < 1) {
       return("You must select at least 1 stock. ")
-    } else if (length(input$stock_symbols_table_rows_selected) > stock_sel_param()$max_stocks) {
-      return(paste("You selected", length(input$stock_symbols_table_rows_selected), 
-                   "stock(s). You can only select up to", stock_sel_param()$max_stocks, "stock(s). "))
+    } 
+  })
+  
+  # Restrict max number of stock selections
+  observeEvent(input$stock_symbols_table_rows_selected, {
+    if (length(input$stock_symbols_table_rows_selected) > stock_sel_param()$max_stocks) {
+      stock_symbols_table_proxy %>% selectRows(input$stock_symbols_table_rows_selected[1:stock_sel_param()$max_stocks])
     }
   })
   
@@ -504,7 +521,7 @@ server <- function(input, output, session) {
         (length(input$stock_symbols_table_rows_selected) <= stock_sel_param()$max_stocks)) {
       updateTextInput(session, 
                       stock_sel_textbox(), 
-                      value = paste(stock_symbols$Symbol[input$stock_symbols_table_rows_selected], 
+                      value = paste(stock_symbols$symbol[input$stock_symbols_table_rows_selected], 
                                     collapse = ","))
       stock_sel_textbox(NULL)
       removeModal()
