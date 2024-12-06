@@ -373,7 +373,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                            )
                          )
                        ),
-                       #htmlOutput("port_sel_stocks_text"), 
+                       htmlOutput("port_sel_stocks_text"), 
                        tags$br(
                          br(),
                          p(portfolio_stock_weights),
@@ -537,9 +537,11 @@ server <- function(input, output, session) {
   })
   
   # This function is for parsing user-input stock selection text
-  parse_stock_text <- function(text) {
-    stocks <- strsplit(text, ",")[[1]] %>%  str_trim() %>% toupper()
+  parse_stock_text <- function(text, max_stocks) {
+    stocks <- strsplit(text, ",")[[1]] %>%  str_trim() %>% toupper() %>% unique()
+    stocks <- stocks[stocks != ""]
     valid_stocks <- stocks[stocks %in% stock_symbols$symbol]
+    valid_stocks <- valid_stocks[1:min(length(valid_stocks), max_stocks)]
     invalid_stocks <- setdiff(stocks, valid_stocks)
     list(valid = valid_stocks, invalid = invalid_stocks)
   }
@@ -911,17 +913,21 @@ server <- function(input, output, session) {
   # Default weights
   port_weights <- reactiveVal(c(0.5, 0.3, 0.2))
   
+  # Max number of stocks to select
+  port_max_stocks <- 5
+  
   # Use stock selector to select portfolio stocks
   observeEvent(input$port_stocks_selector, {
-    stock_sel_param(list(max_stocks = 5))
+    stock_sel_param(list(max_stocks = port_max_stocks))
     stock_sel_textbox("port_stocks_txt")
   })
   
   # Show currently selected stocks from text input
   output$port_sel_stocks_text <- renderText({
-    selection <- parse_stock_text(input$port_stocks_txt)
+    selection <- parse_stock_text(input$port_stocks_txt, port_max_stocks)
     selected_text <- paste("You have selected the following stocks:", 
-                           paste(selection$valid, collapse = ", "))
+                           paste(selection$valid, 
+                                 collapse = ", "))
     if (length(selection$valid) == 0) {
       selected_text <- "You have not selected any stocks. "
     }
@@ -931,6 +937,12 @@ server <- function(input, output, session) {
       invalid_text <- NULL
     }
     paste(c(selected_text, invalid_text), collapse = "<br/>")
+  })
+  
+  # UI for stock weights selection
+  output$port_weights_ui <- renderUI({
+    #selection <- parse_stock_text(input$port_stocks_txt, port_max_stocks)
+    
   })
   
   # Update portfolio upon button click

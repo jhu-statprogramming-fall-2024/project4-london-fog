@@ -100,7 +100,7 @@ selection_model_4<- "K-mean clustering: A method of vector quantization, origina
 
 # Tab 5
 
-portfolio_pick_stocks <- "Please enter the stock symbol seperated by commas (e.x AAPL,MSFT)"
+portfolio_pick_stocks <- "Please enter up to 5 stock symbols seperated by commas (e.x AAPL,MSFT)"
 portfolio_stock_weights <- "Please enter the corresponding weights"
 
 portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
