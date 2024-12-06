@@ -373,10 +373,12 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                            )
                          )
                        ),
+                       #htmlOutput("port_sel_stocks_text"), 
                        tags$br(
                          br(),
                          p(portfolio_stock_weights),
                        ),
+                       uiOutput("port_weights_ui"), 
                        textInput(
                          inputId = "Weights",
                          label = "Corresponding Weights",
@@ -533,6 +535,14 @@ server <- function(input, output, session) {
     stock_sel_textbox(NULL)
     removeModal()
   })
+  
+  # This function is for parsing user-input stock selection text
+  parse_stock_text <- function(text) {
+    stocks <- strsplit(text, ",")[[1]] %>%  str_trim() %>% toupper()
+    valid_stocks <- stocks[stocks %in% stock_symbols$symbol]
+    invalid_stocks <- setdiff(stocks, valid_stocks)
+    list(valid = valid_stocks, invalid = invalid_stocks)
+  }
   
   sector_data_prepped <- reactive({
     sector_data %>%
@@ -905,6 +915,22 @@ server <- function(input, output, session) {
   observeEvent(input$port_stocks_selector, {
     stock_sel_param(list(max_stocks = 5))
     stock_sel_textbox("port_stocks_txt")
+  })
+  
+  # Show currently selected stocks from text input
+  output$port_sel_stocks_text <- renderText({
+    selection <- parse_stock_text(input$port_stocks_txt)
+    selected_text <- paste("You have selected the following stocks:", 
+                           paste(selection$valid, collapse = ", "))
+    if (length(selection$valid) == 0) {
+      selected_text <- "You have not selected any stocks. "
+    }
+    invalid_text <- paste("The following selection is invalid:", 
+                          paste(selection$invalid, collapse = ", "))
+    if (length(selection$invalid) == 0) {
+      invalid_text <- NULL
+    }
+    paste(c(selected_text, invalid_text), collapse = "<br/>")
   })
   
   # Update portfolio upon button click

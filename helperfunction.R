@@ -166,8 +166,8 @@ port_analyze <-function(stocks, weights) {
   }) %>% mutate(Investment = colnames(store_df), .before = Annualized_Return)
   
   result
-  
 }
+
 
 # This function is to conduct Monte Carlo Simulations of the portfolio
 monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_past, num_years_future, initialPortfolio = 10000) {
