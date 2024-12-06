@@ -75,4 +75,19 @@ ggplot(SP500, aes(date, perc_change)) +geom_line()
 SP500 %>% mutate(perc_change = diff(close)/lag(close)*100) %>% filter(abs(perc_change) > 10)
 
 ```
+```{r}
+c(tq_exchange("NASDAQ")$symbol,tq_exchange("NYSE")$symbol, tq_exchange("AMEX")$symbol) %>% n_distinct()
+
+c(tq_exchange("NASDAQ")$symbol,tq_exchange("NYSE")$symbol, tq_exchange("AMEX")$symbol) %>% length()
+
+```
+
+
+```{r}
+rbind(
+  tq_exchange("NYSE") ,
+  tq_exchange("AMEX") ,
+  tq_exchange("NASDAQ") 
+) %>% dplyr::select(-c(last.sale.price, market.cap))  %>% saveRDS(file = "allstock.rds")
+```
 
