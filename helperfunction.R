@@ -1,10 +1,12 @@
 # theme selector
 
+available_theme <- setdiff(shinythemes:::allThemes(), c("sandstone", "slate", "darkly", "superhero"))
+
 themeSelector <- function() {
   div(
     div(
       selectInput("shinytheme-selector", "Choose a theme",
-                  c("sandstone", shinythemes:::allThemes()),
+                  c("sandstone", available_theme),
                   selectize = FALSE
       )
     ),
