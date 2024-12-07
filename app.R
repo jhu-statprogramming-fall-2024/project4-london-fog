@@ -379,11 +379,11 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          p(portfolio_stock_weights),
                        ),
                        uiOutput("port_weights_ui"), 
-                       textInput(
-                         inputId = "Weights",
-                         label = "Corresponding Weights",
-                         value = "0.5,0.3,0.2"
-                       ),
+                       # textInput(
+                       #   inputId = "Weights",
+                       #   label = "Corresponding Weights",
+                       #   value = "0.5,0.3,0.2"
+                       # ),
                        actionButton(
                          "eval_port", 
                          "Evaluate your portfolio"
@@ -541,7 +541,9 @@ server <- function(input, output, session) {
     stocks <- strsplit(text, ",")[[1]] %>%  str_trim() %>% toupper() %>% unique()
     stocks <- stocks[stocks != ""]
     valid_stocks <- stocks[stocks %in% stock_symbols$symbol]
-    valid_stocks <- valid_stocks[1:min(length(valid_stocks), max_stocks)]
+    if (length(valid_stocks)) {
+      valid_stocks <- valid_stocks[1:min(length(valid_stocks), max_stocks)]
+    }
     invalid_stocks <- setdiff(stocks, valid_stocks)
     list(valid = valid_stocks, invalid = invalid_stocks)
   }
@@ -911,7 +913,7 @@ server <- function(input, output, session) {
   port_stocks <- reactiveVal(c("AAPL", "MSFT", "TSLA"))
   
   # Default weights
-  port_weights <- reactiveVal(c(0.5, 0.3, 0.2))
+  port_weights <- reactiveVal(c(0.3, 0.3, 0.4))
   
   # Max number of stocks to select
   port_max_stocks <- 5
@@ -922,18 +924,22 @@ server <- function(input, output, session) {
     stock_sel_textbox("port_stocks_txt")
   })
   
+  # Stock text parse output
+  port_stocks_temp <- reactive({
+    parse_stock_text(input$port_stocks_txt, port_max_stocks)
+  })
+  
   # Show currently selected stocks from text input
   output$port_sel_stocks_text <- renderText({
-    selection <- parse_stock_text(input$port_stocks_txt, port_max_stocks)
     selected_text <- paste("You have selected the following stocks:", 
-                           paste(selection$valid, 
+                           paste(port_stocks_temp()$valid, 
                                  collapse = ", "))
-    if (length(selection$valid) == 0) {
+    if (length(port_stocks_temp()$valid) == 0) {
       selected_text <- "You have not selected any stocks. "
     }
     invalid_text <- paste("The following selection is invalid:", 
-                          paste(selection$invalid, collapse = ", "))
-    if (length(selection$invalid) == 0) {
+                          paste(port_stocks_temp()$invalid, collapse = ", "))
+    if (length(port_stocks_temp()$invalid) == 0) {
       invalid_text <- NULL
     }
     paste(c(selected_text, invalid_text), collapse = "<br/>")
@@ -941,8 +947,103 @@ server <- function(input, output, session) {
   
   # UI for stock weights selection
   output$port_weights_ui <- renderUI({
-    #selection <- parse_stock_text(input$port_stocks_txt, port_max_stocks)
+    sel_stocks <- port_stocks_temp()$valid
+    if (length(sel_stocks) == 0) {
+      return(NULL)
+    }
+    # weight_choice <- seq(0, 1, 0.05)
+    # diff <- (1 / length(sel_stocks)) - weight_choice
+    # diff[diff < 0] <- 1
+    # avg_floor <- weight_choice[which.min(diff)]
+    # default_weights <- c(rep(avg_floor, length(sel_stocks) - 1), 
+    #                      1 - (avg_floor * (length(sel_stocks) - 1)))
+    default_weights <- assign_weights(length(sel_stocks))
+    tagList(
+      lapply(1:length(sel_stocks), function(i) {
+        sliderInput(
+          paste0("port_", sel_stocks[i], "_weight"), 
+          label = paste("Select weight for", sel_stocks[i]), 
+          min = 0, max = 1, step = 0.05,
+          value = default_weights[i]
+        )
+      })
+    )
+  })
+  
+  # Last weight state
+  port_weight_state <- reactiveVal(NULL)
+  
+  # Last weight slider that was changed
+  port_weight_updated <- reactiveVal(NULL)
+  
+  # Whether change in slider values happened because of user action
+  port_user_updated_weight <- reactiveVal(TRUE)
+  
+  # Update last weight slider changed record
+  observe({
+    sel_stocks <- port_stocks_temp()$valid
+    weight_id <- paste0("port_", sel_stocks, "_weight")
+    for (id in weight_id) {
+      req(input[[id]])
+    }
+    curr_state <- sapply(weight_id, function(id) {
+      input[[id]]
+    })
+    names(curr_state) <- sel_stocks
+    isolate({
+      if ((length(sel_stocks) != length(port_weight_state())) || 
+          any(names(port_weight_state()) != sel_stocks)) {
+        # Selected stocks have changed
+        port_weight_state(curr_state)
+      } else if (any(port_weight_state() != curr_state)) {
+        if (port_user_updated_weight()) {
+          # User changed slider values - check which slider changed
+          port_weight_updated(sel_stocks[which(port_weight_state() != curr_state)[1]])
+          port_weight_state(curr_state)
+        } else {
+          port_user_updated_weight(TRUE)
+          port_weight_state(curr_state)
+          port_weight_updated(NULL)
+        }
+      }
+    })
+  })
+  
+  # Update slider values when weights change
+  observeEvent(port_weight_updated(), {
+    sel_stocks <- port_stocks_temp()$valid
+    weight_id <- paste0("port_", sel_stocks, "_weight")
+    for (id in weight_id) {
+      req(input[[id]])
+    }
+    weights <- sapply(weight_id, function(id) {input[[id]]})
+    tot_weight <- sum(weights)
+    updated_weight <- weights[sel_stocks == port_weight_updated()]
+    adjustable_weights <- weights[sel_stocks != port_weight_updated()]
+    adjustable_stocks <- sel_stocks[sel_stocks != port_weight_updated()]
+    adjustable_weight_id <- weight_id[sel_stocks != port_weight_updated()]
+    cum_weights <- cumsum(adjustable_weights)
     
+    if (tot_weight > 1) {
+      port_user_updated_weight(FALSE)
+      idx_change <- min(which(cum_weights > (1 - updated_weight)))
+      remaining_weight <- 1 - updated_weight - sum(adjustable_weights[- c(idx_change:length(adjustable_weights))])
+      new_weights <- assign_weights(length(adjustable_stocks) - idx_change + 1, 
+                                    tot_weight = remaining_weight)
+      for (i in idx_change:length(adjustable_stocks)) {
+        new_weight_i <- i - idx_change + 1
+        updateSliderInput(session = session,
+                          inputId = adjustable_weight_id[i],
+                          value = new_weights[new_weight_i])
+      }
+    } else if (tot_weight < 1) {
+      port_user_updated_weight(FALSE)
+      new_weight <- 1 - updated_weight - sum(adjustable_weights[- length(adjustable_stocks)])
+      names(new_weight) <- NULL
+      updateSliderInput(session = session,
+                        inputId = adjustable_weight_id[length(adjustable_stocks)],
+                        value = new_weight)
+    }
   })
   
   # Update portfolio upon button click

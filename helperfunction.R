@@ -40,6 +40,17 @@ themeSelector <- function() {
   )
 }
 
+# This function is used to distribute weights among a number of stocks
+assign_weights <- function(n_stocks, tot_weight = 1, weight_choice = seq(0, 1, 0.05)) {
+  diff <- (tot_weight / n_stocks) - weight_choice
+  diff[diff < 0] <- 1
+  avg_floor <- weight_choice[which.min(diff)]
+  res <- c(rep(avg_floor, n_stocks - 1),               # floor of average
+           tot_weight - (avg_floor * (n_stocks - 1)))  # last stock takes remaining weight
+  names(res) <- NULL
+  return(res)
+}
+
 # This function is used to plot market trend in each different sector 
 industry_trend <-function(industry,start_date,end_date)
 {
