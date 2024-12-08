@@ -1088,7 +1088,8 @@ server <- function(input, output, session) {
   
   # Portfolio summary
   output$port_summary <- renderDataTable(
-    datatable(port_analyze(port_stocks(), port_weights()), 
+    datatable(port_analyze(port_stocks(), port_weights()) %>% 
+                mutate_if(is.numeric, round, digits = 3), 
               selection = "none", 
               rownames = FALSE, 
               options = list(pageLength = 5,
