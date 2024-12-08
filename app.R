@@ -564,7 +564,7 @@ server <- function(input, output, session) {
       dataTableOutput("nasdaq_table")
     }
   })
-  output$sp500_table <- DT::renderDT(expr = SP500_info %>% rename(Company = Security),
+  output$sp500_table <- DT::renderDT(expr = SP500_info,
                                      options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   output$nasdaq_table <- DT::renderDT(expr = Nasdaq_info,
