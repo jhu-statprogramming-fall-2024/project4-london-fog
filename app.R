@@ -379,15 +379,11 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          p(portfolio_stock_weights),
                        ),
                        uiOutput("port_weights_ui"), 
-                       # textInput(
-                       #   inputId = "Weights",
-                       #   label = "Corresponding Weights",
-                       #   value = "0.5,0.3,0.2"
-                       # ),
                        actionButton(
                          "eval_port", 
                          "Evaluate your portfolio"
-                       )
+                       ), 
+                       span(textOutput("port_eval_message"), style="color:red")
                      ),
                      
                      mainPanel(
@@ -909,6 +905,12 @@ server <- function(input, output, session) {
   
   ### Understand your portfolio tab
   
+  # Portfolio evaluation message
+  output$port_eval_message <- renderText({port_eval_message()})
+  
+  # Portfolio evaluation message
+  port_eval_message <- reactiveVal(NULL)
+  
   # Default stocks
   port_stocks <- reactiveVal(c("AAPL", "MSFT", "TSLA"))
   
@@ -951,12 +953,6 @@ server <- function(input, output, session) {
     if (length(sel_stocks) == 0) {
       return(NULL)
     }
-    # weight_choice <- seq(0, 1, 0.05)
-    # diff <- (1 / length(sel_stocks)) - weight_choice
-    # diff[diff < 0] <- 1
-    # avg_floor <- weight_choice[which.min(diff)]
-    # default_weights <- c(rep(avg_floor, length(sel_stocks) - 1), 
-    #                      1 - (avg_floor * (length(sel_stocks) - 1)))
     default_weights <- assign_weights(length(sel_stocks))
     tagList(
       lapply(1:length(sel_stocks), function(i) {
@@ -995,6 +991,7 @@ server <- function(input, output, session) {
           any(names(port_weight_state()) != sel_stocks)) {
         # Selected stocks have changed
         port_weight_state(curr_state)
+        port_weight_updated(NULL)
       } else if (any(port_weight_state() != curr_state)) {
         if (port_user_updated_weight()) {
           # User changed slider values - check which slider changed
@@ -1013,6 +1010,13 @@ server <- function(input, output, session) {
   observeEvent(port_weight_updated(), {
     sel_stocks <- port_stocks_temp()$valid
     weight_id <- paste0("port_", sel_stocks, "_weight")
+    # Check special case of only 1 selected stock
+    if ((length(sel_stocks) == 1) && (input[[weight_id]] != 1)) {
+      port_user_updated_weight(FALSE)
+      updateSliderInput(session = session,
+                        inputId = weight_id,
+                        value = 1)
+    }
     for (id in weight_id) {
       req(input[[id]])
     }
@@ -1023,7 +1027,6 @@ server <- function(input, output, session) {
     adjustable_stocks <- sel_stocks[sel_stocks != port_weight_updated()]
     adjustable_weight_id <- weight_id[sel_stocks != port_weight_updated()]
     cum_weights <- cumsum(adjustable_weights)
-    
     if (tot_weight > 1) {
       port_user_updated_weight(FALSE)
       idx_change <- min(which(cum_weights > (1 - updated_weight)))
@@ -1044,12 +1047,27 @@ server <- function(input, output, session) {
                         inputId = adjustable_weight_id[length(adjustable_stocks)],
                         value = new_weight)
     }
+    port_weight_updated(NULL)
   })
   
   # Update portfolio upon button click
   observeEvent(input$eval_port, {
-    port_stocks(strsplit(input$port_stocks_txt, ",")[[1]])
-    port_weights(as.numeric(strsplit(input$Weights, ",")[[1]]))
+    # Check that selected stocks and weights are valid
+    if (length(port_stocks_temp()$valid) == 0) {
+      port_eval_message("Please input at least 1 valid stock symbol. ")
+    } else {
+      weights <- sapply(port_stocks_temp()$valid, function(stock) {
+        input[[paste0("port_", stock, "_weight")]]
+      })
+      names(weights) <- NULL
+      if (sum(weights) != 1 || anyNA(weights)) {
+        port_eval_message("Please make sure the weights are valid and sum to 1. ")
+      } else {
+        port_eval_message(NULL)
+        port_stocks(port_stocks_temp()$valid)
+        port_weights(weights)
+      }
+    }
   })
   
   # Portfolio information
