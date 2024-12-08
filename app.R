@@ -410,7 +410,9 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          ), 
                          tabPanel(
                            "Your Chosen Portfolio Against S&P500", 
-                           #plotOutput("Comparison")
+                           br(),
+                           h3("Comparison between Your Portfolio and S&P 500 (SPY)"),
+                           plotlyOutput("port_spy_plot")
                          )
                        ),
                      )
@@ -1097,6 +1099,11 @@ server <- function(input, output, session) {
                              sDom  = '<"top">lrt<"bottom">ip'))
     
   )
+  
+  # Portfolio against S&P500 plot
+  output$port_spy_plot <- renderPlotly({
+    ggplotly(portfolio_fun(port_stocks(),port_weights()))
+  })
 }
 
 

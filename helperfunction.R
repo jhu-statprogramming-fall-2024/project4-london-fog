@@ -114,12 +114,12 @@ portfolio_fun <- function(stocks, weights) {
     pivot_wider(names_from=symbol,values_from = ret) %>% 
     drop_na()
   ## Calculating Portfolio metrics
-  store = cumprod(price_data[-1] + 1 )
+  store <- cumprod(price_data[-1] + 1 )
   for (i in (1:ncol(store))) {
     store[i] =  store[i]*weights[i]
   }
   store <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store))))
-  store['date'] = price_data['date']
+  store['date'] <- price_data['date']
   
   ## Getting S&P 500 data
   min_port_date <- price_data %>% pull(date) %>% min()
@@ -127,19 +127,18 @@ portfolio_fun <- function(stocks, weights) {
     tq_transmute(select = adjusted,mutate_fun = periodReturn, period = 'daily', col_rename = 'ret',type = 'log') %>%
     drop_na() %>% 
     filter(date >= min_port_date)
-  store_spy = cumprod(price_data_SPY[-1] + 1) 
+  store_spy <- cumprod(price_data_SPY[-1] + 1) 
   
   ## Combining with S&P 500 data
-  store["SP_500"] = store_spy
+  store["SP_500"] <- store_spy
   
   ## Generating Graph
-  store %>% select(date,Portfolio,SP_500) %>%pivot_longer(2:3,names_to = "Investment",values_to = "Return") %>%
+  store %>% select(date,Portfolio,SP_500) %>% pivot_longer(2:3,names_to = "Investment",values_to = "Return") %>%
     ggplot(aes(x=date,y=Return,color=Investment)) + geom_line() +
-    labs(x = "",
-         y="Daily Investment Worth",
+    labs(x = "Time",
+         y="Daily Investment Return",
          color="Investment", 
-         title = "Your Portfolio against S&P 500")+
-    theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()
+         title = "Your Portfolio against S&P 500") + theme_minimal()
 }
 
 
