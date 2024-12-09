@@ -413,6 +413,11 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                            br(),
                            h3("Comparison between Your Portfolio and S&P 500 (SPY)"),
                            plotlyOutput("port_spy_plot")
+                         ), 
+                         tabPanel(
+                           "Prediction of Portfolio Performance", 
+                           br(), 
+                           uiOutput("port_pred_ui")
                          )
                        ),
                      )
@@ -420,12 +425,12 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                    
                  ),
                  
-                 # Tab Portfolio Optimization
-                 tabPanel("Portfolio Optimization",
-                          
-                          icon = icon("coins")
-                          
-                 )
+                 # # Tab Portfolio Optimization
+                 # tabPanel("Portfolio Optimization",
+                 #          
+                 #          icon = icon("coins")
+                 #          
+                 # )
                  
 )
 
@@ -1104,6 +1109,74 @@ server <- function(input, output, session) {
   # Portfolio against S&P500 plot
   output$port_spy_plot <- renderPlotly({
     ggplotly(portfolio_fun(port_stocks(),port_weights()))
+  })
+  
+  # Portfolio prediction parameters
+  output$port_pred_ui <- renderUI({
+    ipo <- tq_get(port_stocks()) %>% 
+      group_by(symbol) %>% 
+      summarise(ipo.date = min(date, na.rm=T)) %>% 
+      pull(ipo.date)
+    max_nyear_past <- year(Sys.Date()) - year(max(ipo))
+    if ((Sys.Date() - years(max_nyear_past)) <= max(ipo)) {
+      max_nyear_past <- max_nyear_past - 1
+    }
+    if (max_nyear_past == 0) {
+      # Display warning when any selected stock is initially offered less than a year ago
+      return(
+        tagList(
+          p(paste("You have selected the following stocks that are initially offered within the past year:", 
+                  paste(port_stocks()[ipo >= (Sys.Date() - years(1))], collapse = ", "))), 
+          p("This function can only be used to predict performance of stocks with more than a year of history. 
+          Please remove these stocks from your portfolio to use this function. ")
+        )
+      )
+    } else {
+      tagList(
+        fluidRow(
+          column(
+            4, 
+            sliderInput(
+              "port_pred_nyear_past", 
+              "Number of past years to use to generate prediction: ", 
+              min = 1, 
+              max = max_nyear_past, 
+              value = max_nyear_past
+            )
+          ), 
+          column(
+            4, 
+            sliderInput(
+              "port_pred_nyear_future", 
+              "Number of future years make prediction for: ", 
+              min = 1, 
+              max = 5, 
+              value = 3
+            )
+          ), 
+          column(
+            4, 
+            sliderInput(
+              "port_pred_nsimulations", 
+              "Number of Monte-Carlo simulations: ", 
+              min = 100, 
+              max = 300, 
+              step = 10,
+              value = 100
+            )
+          )
+        ), 
+        plotOutput("port_pred_plot")
+      )
+    }
+  })
+  
+  output$port_pred_plot <- renderPlot({
+    monte_carlo_simulation(tickers = port_stocks(), 
+                           weights = port_weights(), 
+                           num_simulations = input$port_pred_nsimulations, 
+                           num_years_past = input$port_pred_nyear_past, 
+                           num_years_future = input$port_pred_nyear_future)
   })
 }
 

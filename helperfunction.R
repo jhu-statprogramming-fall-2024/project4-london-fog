@@ -243,7 +243,6 @@ monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_
   
   # Create historical data frame for plotting
   historical_df <- data.frame(Date = index(portfolio_data), Price = scaled_historical_prices)
-  print(head(historical_df))
   
   # Calculate daily returns from the scaled historical prices
   portfolio_returns <- ROC(scaled_historical_prices, type = "discrete", na.pad = FALSE)
@@ -277,17 +276,14 @@ monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_
   # Calculate median forecast price
   median_forecast <- apply(simulation_results, 1, median)
   median_forecast_df <- data.frame(Date = seq(end_date + 1, by = "day", length.out = num_days), Price = median_forecast)
-  print(head(median_forecast_df))
   
   # Prepare data for plotting
   simulation_df <- as.data.frame(simulation_results)
   simulation_df$Date <- seq(end_date + 1, by = "day", length.out = num_days)
   simulation_df_long <- pivot_longer(simulation_df, cols = -Date, names_to = "Simulation", values_to = "Price")
-  print(head(simulation_df))
-  print(head(simulation_df_long))
   
   # Plot the results
-  ggplot() +
+  g <- ggplot() +
     geom_line(data = historical_df, aes(x = Date, y = Price), color = "blue", size = 0.7) +
     geom_line(data = simulation_df_long, aes(x = Date, y = Price, group = Simulation), color = "grey", linetype = "dotted", alpha = 0.3) +
     geom_line(data = median_forecast_df, aes(x = Date, y = Price), color = "blue", size = 0.7, linetype = "dashed") +
@@ -298,6 +294,7 @@ monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_
          y = "Portfolio Price") +
     theme_classic() +
     theme(legend.position = "none")
+  return(g)
 }
 
 
