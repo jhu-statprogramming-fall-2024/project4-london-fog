@@ -127,7 +127,7 @@ portfolio_fun <- function(stocks, weights) {
     tq_transmute(select = adjusted,mutate_fun = periodReturn, period = 'daily', col_rename = 'ret',type = 'log') %>%
     drop_na() %>% 
     filter(date >= min_port_date)
-  store_spy <- cumprod(price_data_SPY[-1] + 1) 
+  store_spy <- cumprod(price_data_SPY[-1] + 1)
   
   ## Combining with S&P 500 data
   store["SP_500"] <- store_spy
@@ -144,18 +144,22 @@ portfolio_fun <- function(stocks, weights) {
 
 # This function is used to analyze portfolio and S&P.
 
-port_analyze <-function(stocks, weights) { 
+port_analyze <- function(stocks, weights) { 
   ## Portfolio Info 
   price_data <- tq_get(stocks,from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
     group_by(symbol) %>%
     tq_transmute(select = adjusted, mutate_fun = periodReturn, period = 'daily', col_rename = 'ret', type = 'log') %>%
     pivot_wider(names_from=symbol, values_from = ret) %>% 
     drop_na()
-  store <- cumprod(price_data[-1] + 1 )
-  for (i in (1:ncol(store))) {
-    store[i] =  store[i]*weights[i]
-  }
-  store_port <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store)))) %>% dplyr::select(Portfolio)
+  port_ret <- sum(map_df(price_data[-1] + 1, prod) * weights) - 1
+  port_ann_ret <- (port_ret + 1) ^ (252/nrow(price_data)) - 1
+  port_daily_ret <- apply(price_data[-1], 1, function(x){sum(x * weights)})
+  port_ann_vol <- sd(port_daily_ret, na.rm = T) * sqrt(252)
+  # store <- cumprod(price_data[-1] + 1)
+  # for (i in (1:ncol(store))) {
+  #   store[i] =  store[i] * weights[i]
+  # }
+  # store_port <- store %>% rowwise() %>% mutate(Portfolio = sum(c_across(1:ncol(store)))) %>% dplyr::select(Portfolio)
   
   ## SPY Info
   min_port_date <- price_data %>% pull(date) %>% min()
@@ -163,17 +167,25 @@ port_analyze <-function(stocks, weights) {
     tq_transmute(select = adjusted, mutate_fun = periodReturn, period = 'daily', col_rename = 'ret', type = 'log') %>%
     drop_na() %>% 
     filter(date >= min_port_date)
-  store_spy <- cumprod(price_data_SPY %>% pull(ret) + 1)
   
-  store_df <- data.frame(SPY = store_spy, 
-                         Portfolio = store_port)
-  store_df <- (store_df-lag(store_df))/lag(store_df)
-  result <- map_df(store_df, function(x) {
-    mean_ret <- mean(x, na.rm = TRUE)
-    sd_ret <- sd(x, na.rm = TRUE)
-    c("Annualized_Return" = ((mean_ret + 1)^252) - 1, 
-      "Annualized_Volatility" = sd_ret * 252 ^ 0.5)
-  }) %>% mutate(Investment = colnames(store_df), .before = Annualized_Return)
+  spy_ann_ret <- prod(price_data_SPY %>% pull(ret) + 1) ^ (252/nrow(price_data)) - 1
+  spy_ann_vol <- sd(price_data_SPY %>% pull(ret), na.rm = T) * sqrt(252)
+  
+  # store_spy <- cumprod(price_data_SPY %>% pull(ret) + 1)
+  # 
+  # store_df <- data.frame(SPY = store_spy, 
+  #                        Portfolio = store_port)
+  # store_df <- (store_df-lag(store_df))/lag(store_df)
+  # result <- map_df(store_df, function(x) {
+  #   mean_ret <- mean(x, na.rm = TRUE)
+  #   sd_ret <- sd(x, na.rm = TRUE)
+  #   c("Annualized_Return" = ((mean_ret + 1)^252) - 1, 
+  #     "Annualized_Volatility" = sd_ret * 252 ^ 0.5)
+  # }) %>% mutate(Investment = colnames(store_df), .before = Annualized_Return)
+  
+  result <- data.frame(investment = c("S&P500", "portfolio"), 
+                       annualized_return = c(spy_ann_ret, port_ann_ret), 
+                       annualized_volatiliy = c(spy_ann_vol, port_ann_vol))
   
   result
 }
@@ -231,6 +243,7 @@ monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_
   
   # Create historical data frame for plotting
   historical_df <- data.frame(Date = index(portfolio_data), Price = scaled_historical_prices)
+  print(head(historical_df))
   
   # Calculate daily returns from the scaled historical prices
   portfolio_returns <- ROC(scaled_historical_prices, type = "discrete", na.pad = FALSE)
@@ -264,11 +277,14 @@ monte_carlo_simulation <- function(tickers, weights, num_simulations, num_years_
   # Calculate median forecast price
   median_forecast <- apply(simulation_results, 1, median)
   median_forecast_df <- data.frame(Date = seq(end_date + 1, by = "day", length.out = num_days), Price = median_forecast)
+  print(head(median_forecast_df))
   
   # Prepare data for plotting
   simulation_df <- as.data.frame(simulation_results)
   simulation_df$Date <- seq(end_date + 1, by = "day", length.out = num_days)
   simulation_df_long <- pivot_longer(simulation_df, cols = -Date, names_to = "Simulation", values_to = "Price")
+  print(head(simulation_df))
+  print(head(simulation_df_long))
   
   # Plot the results
   ggplot() +
