@@ -784,7 +784,7 @@ server <- function(input, output, session) {
       distinct() %>%
       ggplot(aes(x = reorder(sector, -count), y = count, fill = sector)) +
       geom_bar(stat = "identity", show.legend = FALSE, width = 0.8) +  # Adjust bar width and hide legend
-      geom_text(aes(label = count), vjust = -0.5, size = 4, fontface = "bold", color = "black") +  # Add count labels on bars
+      geom_text(aes(label = count), vjust = -0.3, size = 4, fontface = "bold", color = "black") +  # Add count labels on bars
       scale_fill_brewer(palette = "Set3") +  # Use a more readable color palette
       theme_minimal() +  # A cleaner background
       labs(
