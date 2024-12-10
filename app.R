@@ -65,29 +65,7 @@ stock_symbols <- readRDS("allstock.rds") %>% mutate(country = as.factor(country)
 # Shiny ui function
 
 ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("sandstone"),
-                 
-                 # tags$style(HTML("
-                 #    /* Change font color of the DataTable body and header */
-                 #    .dataTable tbody td {
-                 #      color: white !important;
-                 #    }
-                 #    .dataTable thead th {
-                 #      color: white !important;
-                 #    }
-                 #    /* Change text color for pagination and search bar */
-                 #    .dataTables_wrapper .dataTables_paginate .paginate_button,
-                 #    .dataTables_wrapper .dataTables_info,
-                 #    .dataTables_wrapper .dataTables_length label,
-                 #    .dataTables_wrapper .dataTables_filter label {
-                 #      color: white !important;
-                 #    }
-                 #    .dataTables_wrapper .dataTables_filter input {
-                 #      color: white !important;
-                 #      background-color: black !important; /* Adjust background color of search box if needed */
-                 #    }
-                 #  ")),
-                 # 
-                 
+
                  # Tab Intro
                  tabPanel("Introduction of this App",
                           icon = icon("compass"),
@@ -165,9 +143,9 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                 # Time Frame 
                                 sliderInput("Trend_Time",
                                             "Select Your Interested Time Frame",
-                                            value = c(2014,2024),
-                                            min = 2005,
-                                            max = 2025, 
+                                            value = c(2014,2023),
+                                            min = 2004,
+                                            max = 2024, 
                                             animate = T,
                                             sep = ""),
                                 
