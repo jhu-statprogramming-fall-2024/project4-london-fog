@@ -273,74 +273,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  ),
                  
                  
-                 
-                 # # Tab Stock Selection
-                 # tabPanel("Stock Selection",
-                 #          
-                 #          icon = icon("diagnoses"),
-                 #          
-                 #          fluidPage(
-                 #            
-                 #            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
-                 #                         
-                 #                         tags$br(br(),
-                 #                                 p(selection_0),
-                 #                                 
-                 #                         ),
-                 #                         
-                 #                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
-                 #                         
-                 #                         tags$br(
-                 #                           br(),
-                 #                           p(selection_1),
-                 #                           br())),
-                 #                         
-                 #                         # DT::DTOutput("info")),
-                 #            
-                 #            mainPanel(tabsetPanel(type="tabs", 
-                 #                                  tabPanel("Instruction",
-                 #                                           br(),
-                 #                                           
-                 #                                           strong(selection_instruction_1),
-                 #                                           
-                 #                                           tags$ol(
-                 #                                             br(),
-                 #                                             tags$li(selection_instruction_2),
-                 #                                             br(),
-                 #                                             tags$li(selection_instruction_3),
-                 #                                             br()
-                 #                                             
-                 #                                           ),
-                 #                                           p(selection_instruction_4),
-                 #                                           br(),
-                 #                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
-                 #                                           br()
-                 #                                           
-                 #                                  ),
-                 #                                  tabPanel("Model Building",
-                 #                                           br(),
-                 #                                           br(),
-                 #                                           p(selection_model_1),
-                 #                                           br(),
-                 #                                           p(selection_model_2),
-                 #                                           br(),
-                 #                                           p(selection_model_3),
-                 #                                           br(),
-                 #                                           p(selection_model_4),
-                 #                                           br()
-                 #                                           
-                 #                                  ),
-                 #                                  tabPanel("S&P 500 Cluster", 
-                 #                                           plotOutput("Cluster",click = "my_click"),
-                 #                                           br(), 
-                 #                                           DT::DTOutput("cluster_info")
-                 #                                           )
-                 #            ))
-                 #            
-                 #          )
-                 #          
-                 # ),
-                 # 
                  # Tab Understand Your Portfolio
                  tabPanel(
                    "Understand Your Portfolio",
@@ -423,6 +355,73 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                      )
                    )
                  ),
+                 
+                 # Tab Stock Selection
+                 tabPanel("Stock Clustering",
+                          
+                          icon = icon("diagnoses"),
+                          
+                          fluidPage(
+                            
+                            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
+                                         
+                                         tags$br(br(),
+                                                 p(selection_0),
+                                                 
+                                         ),
+                                         
+                                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
+                                         
+                                         tags$br(
+                                           br(),
+                                           p(selection_1),
+                                           br())),
+                            
+                            # DT::DTOutput("info")),
+                            
+                            mainPanel(tabsetPanel(type="tabs", 
+                                                  tabPanel("Instruction",
+                                                           br(),
+                                                           
+                                                           strong(selection_instruction_1),
+                                                           
+                                                           tags$ol(
+                                                             br(),
+                                                             tags$li(selection_instruction_2),
+                                                             br(),
+                                                             tags$li(selection_instruction_3),
+                                                             br()
+                                                             
+                                                           ),
+                                                           p(selection_instruction_4),
+                                                           br(),
+                                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
+                                                           br()
+                                                           
+                                                  ),
+                                                  tabPanel("Model Building",
+                                                           br(),
+                                                           br(),
+                                                           p(selection_model_1),
+                                                           br(),
+                                                           p(selection_model_2),
+                                                           br(),
+                                                           p(selection_model_3),
+                                                           br(),
+                                                           p(selection_model_4),
+                                                           br()
+                                                           
+                                                  ),
+                                                  tabPanel("S&P 500 Cluster", 
+                                                           plotOutput("Cluster",click = "my_click"),
+                                                           br(), 
+                                                           DT::DTOutput("cluster_info")
+                                                  )
+                            ))
+                            
+                          )
+                          
+                 )
                  
                  # # Tab Portfolio Optimization
                  # tabPanel("Portfolio Optimization",
