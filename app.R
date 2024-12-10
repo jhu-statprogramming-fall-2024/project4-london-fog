@@ -41,6 +41,8 @@ Nasdaq_info <- read_html(Nasdaq100_url) %>%
   html_table(fill = TRUE) %>%
   .[[5]]  # The fifth table
 
+dow_info <- tq_index("DOW-GLOBAL") %>% dplyr::select(-c(sector, weight)) 
+
 
 industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
 sector_data <- tq_get(industries_ETF,from = "2010-01-01",to = Sys.Date(), get = 'stock.prices') 
@@ -116,7 +118,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                     p(data_summary_2),
                             ),
                             
-                            selectInput("ETF_choice", "Select ETF", choices = c("SPY-500", "Nasdaq-100")),
+                            selectInput("ETF_choice", "Select ETF", choices = c("SPY-500", "Nasdaq-100", "DOW-GLOBAL")),
                             
                             uiOutput("overall_table_ui"),
                             
@@ -559,14 +561,21 @@ server <- function(input, output, session) {
   output$overall_table_ui <- renderUI({
     if (input$ETF_choice == "SPY-500") {
       dataTableOutput("sp500_table")
-    } else {
+    } else if (input$ETF_choice == "DOW-GLOBAL") {
+      dataTableOutput("dow_table")   
+    }
+    else {
       dataTableOutput("nasdaq_table")
     }
   })
+  
   output$sp500_table <- DT::renderDT(expr = SP500_info,
                                      options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   output$nasdaq_table <- DT::renderDT(expr = Nasdaq_info,
+                                      options = list(pageLength = 10, lengthChange = FALSE, searching = F))
+  
+  output$dow_table <- DT::renderDT(expr = dow_info,
                                       options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
   
