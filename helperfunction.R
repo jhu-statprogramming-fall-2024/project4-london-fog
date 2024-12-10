@@ -167,10 +167,10 @@ portfolio_fun <- function(stocks, weights) {
   store_spy <- cumprod(price_data_SPY[-1] + 1)
   
   ## Combining with S&P 500 data
-  store["SP_500"] <- store_spy
+  store["SPY500"] <- store_spy
   
   ## Generating Graph
-  store %>% select(date,Portfolio,SP_500) %>% pivot_longer(2:3,names_to = "Investment",values_to = "Return") %>%
+  store %>% dplyr::select(date,Portfolio,SPY500) %>% pivot_longer(2:3,names_to = "Investment",values_to = "Return") %>%
     ggplot(aes(x=date,y=Return,color=Investment)) + geom_line() +
     labs(x = "Time",
          y="Daily Investment Return",
