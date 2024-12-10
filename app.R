@@ -1206,7 +1206,7 @@ server <- function(input, output, session) {
               "Number of past years to use to generate prediction: ", 
               min = 1, 
               max = max_nyear_past, 
-              value = max_nyear_past
+              value = min(5, max_nyear_past)
             )
           ), 
           column(
