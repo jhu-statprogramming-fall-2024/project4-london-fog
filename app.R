@@ -151,11 +151,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                 br(),
                                 
                                 # Option reactive to the first 
-                                uiOutput("option21"),
-                                
-                                br(),
-                                
-                                uiOutput("option22"),
+                                uiOutput("stock_trends_stock_sel_ui"), 
                                 
                                 br(),
                                 
@@ -214,11 +210,8 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                      p(stock_trend_jargon_5),
                                                      br()
                                             ),
-                                            tabPanel("Stock Trend", plotlyOutput("stock_trend_plot"), 
-                                                     tags$br(br(),
-                                                             p("Daily Stock Datatable"),
-                                                     ),
-                                                     DT::DTOutput("summary_stock_individual") 
+                                            tabPanel("Stock Trend", 
+                                                     uiOutput("stock_trend_res_ui")
                                             ))
                               )
                             )
@@ -424,7 +417,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                        ),
                      )
                    )
-                   
                  ),
                  
                  # # Tab Portfolio Optimization
@@ -590,16 +582,55 @@ server <- function(input, output, session) {
   
   # Stock Trend Tab
   
-  output$option21 <- renderUI(
-    if (input$market_indicator == "individual")
-    {textInput(inputId = "Select_Stock_01", label="First Stock of Interest",value = "AAPL")}
-    else{})
+  output$stock_trends_stock_sel_ui <- renderUI(
+    if (input$market_indicator == "individual") {
+      tagList(
+        p("Please input up to 5 stock symbols, separated by commas (e.x AAPL,TSLA)"),
+        fluidRow(
+          column(
+            8, 
+            textInput(inputId = "stock_trend_stock_sel_txt", 
+                      label = NULL, 
+                      value = "AAPL,TSLA")
+          ), 
+          column(
+            4, 
+            actionButton("stock_trend_stock_selector", 
+                         label = "Stock selector")
+          )
+        ), 
+        htmlOutput("stock_trend_sel_stocks_text")
+      )
+    })
   
-  output$option22 <- renderUI(
-    if (input$market_indicator == "individual")
-    {textInput(inputId = "Select_Stock_02", label="Second Stock of Interest",value = "TSLA")}
-    else{})                
+  stock_trend_max_stocks <- 5
   
+  # Use stock selector to select stocks
+  observeEvent(input$stock_trend_stock_selector, {
+    stock_sel_param(list(max_stocks = stock_trend_max_stocks))
+    stock_sel_textbox("stock_trend_stock_sel_txt")
+  })
+  
+  # Stock text parse output
+  stock_trend_stock <- reactive({
+    parse_stock_text(input$stock_trend_stock_sel_txt, stock_trend_max_stocks)
+  })
+  
+  # Show currently selected stocks from text input
+  output$stock_trend_sel_stocks_text <- renderText({
+    selected_text <- paste("You have selected the following stocks:", 
+                           paste(stock_trend_stock()$valid, 
+                                 collapse = ", "))
+    if (length(stock_trend_stock()$valid) == 0) {
+      selected_text <- "You have not selected any stocks. "
+    }
+    invalid_text <- paste("The following selection is invalid:", 
+                          paste(stock_trend_stock()$invalid, collapse = ", "))
+    if (length(stock_trend_stock()$invalid) == 0) {
+      invalid_text <- NULL
+    }
+    paste(c(selected_text, invalid_text), collapse = "<br/>")
+  })
   
   output$third_option <- renderUI(
     if (input$market_indicator == "individual")
@@ -610,136 +641,155 @@ server <- function(input, output, session) {
                     "Daily Transaction Volume" = "volume"))}
     else{})
   
+  output$stock_trend_res_ui <- renderUI({
+    # No output graph if user selected 0 stocks
+    if (input$market_indicator == "individual" && length(stock_trend_stock()$valid) == 0) {
+      return(
+        tagList(
+          br(), 
+          p("You have not selected any stocks. Please select 1-5 stocks to view trends. ")
+        )
+      )
+    }
+    tagList(
+      br(), 
+      h3("Stock trend plot"),
+      plotlyOutput("stock_trend_plot"), 
+      br(), 
+      h3("Daily Stock Datatable"),
+      DT::DTOutput("summary_stock_individual")
+    )
+  })
+  
   output$summary_stock_individual <- DT::renderDT(
-    if (input$market_indicator == "individual")
-    {expr = tq_get(c(input$Select_Stock_01,input$Select_Stock_02), 
-                   get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
-      mutate(year=year(date), month = month(date))%>%
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
-      dplyr::select(Stock, Date, Price, Volume) %>% 
-      arrange(desc(Date)) %>% 
-      mutate(across(where(is.numeric), ~ round(.x, 3)))}
-    
-    else if (input$market_indicator == "Market")
-    {expr = tq_get(c("SPY","QQQ", "VTI"), 
-                   get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
-      mutate(year=year(date), month = month(date))%>%
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
-      dplyr::select(Stock, Date, Price, Volume) %>% 
-      arrange(desc(Date)) %>% 
-      mutate(across(where(is.numeric), ~ round(.x, 3)))}
-    
-    ,options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip')
+    if (input$market_indicator == "individual"& length(stock_trend_stock()$valid)) {
+      expr = tq_get(stock_trend_stock()$valid, 
+                    get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
+        mutate(year=year(date), month = month(date))%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
+        dplyr::select(Stock, Date, Price, Volume) %>% 
+        arrange(desc(Date)) %>% 
+        mutate(across(where(is.numeric), ~ round(.x, 3)))
+    } else if (input$market_indicator == "Market") {
+      expr = tq_get(c("SPY","QQQ", "VTI"), 
+                    get = 'stock.prices', from = '2000-01-01',to = Sys.Date()) %>% 
+        mutate(year=year(date), month = month(date))%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        mutate(Stock = symbol, Date = date, Volume = volume, Price = adjusted) %>% 
+        dplyr::select(Stock, Date, Price, Volume) %>% 
+        arrange(desc(Date)) %>% 
+        mutate(across(where(is.numeric), ~ round(.x, 3)))
+    }, options = list(pageLength = 12, lengthChange = FALSE, sDom  = '<"top">flrt<"bottom">ip')
   )
   
   
   output$stock_trend_plot <- renderPlotly(
-    if (input$market_indicator == "individual" & input$stock_stats == "price")
-      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      #     mutate(year=year(date), month = month(date))%>%
-      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-      #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
-      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
-    {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      mutate(year=year(date), month = month(date))%>%
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
-    stock_data %>% plot_ly(
-      x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines', 
-      text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
-      hoverinfo = 'text'
-    ) %>%
-      layout(
-        title = "Price of a Single Share of Stock", xaxis = list(title = ""), yaxis = list(title = "Single Share Price"),
-        shapes = list(
-          type = "line",
-          x0 = min(stock_data$date), x1 = max(stock_data$date),
-          y0 = input$target_value, y1 = input$target_value,
-          line = list(color = "black", dash = "dash")
-        ),
-        legend = list(title = list(text = "Stock"))
-      ) %>% config(displaylogo = FALSE)}
-    
-    
-    else if (input$market_indicator == "individual" & input$stock_stats == "volume")
-      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      #     mutate(year=year(date), month = month(date))%>%
-      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      #     ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
-      #     labs(x="", y="Daily Transaction (in millions)",color="Stock", title = "Daily transaction volume of stock")+
-      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
-    {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
-    stock_data %>% plot_ly(
-      x = ~date, y = ~volume_adj, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
-      text = ~paste('Date:', date, '<br>Daily Transcation:', round(volume_adj,3), 'millions', '<br>Stock:', symbol),
-      hoverinfo = 'text'
-    ) %>%
-      layout(
-        title = "Daily transaction volume of stock", xaxis = list(title = ""), yaxis = list(title = "Daily Transaction (in millions)"),
-        shapes = list(
-          type = "line",
-          x0 = min(stock_data$date), x1 = max(stock_data$date),
-          y0 = input$target_value, y1 = input$target_value,
-          line = list(color = "black", dash = "dash")
-        ),
-        legend = list(title = list(text = "Stock"))
-      ) %>% config(displaylogo = FALSE)}
-    
-    
-    else if (input$market_indicator == "individual" & input$stock_stats == "percent")
-    {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
-      mutate(perc_change = abs(diff(close)/lag(close)*100)) %>% 
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2], date < Sys.Date()-7) 
-    stock_data %>% plot_ly(
-      x = ~date, y = ~perc_change, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
-      text = ~paste('Date:', date, '<br>Percentage Change:', round(perc_change,3), '%', '<br>Stock:', symbol),
-      hoverinfo = 'text'
-    ) %>%
-      layout(
-        title = "Daily change of stock in percentage", xaxis = list(title = ""), yaxis = list(title = "Change in percentage"),
-        shapes = list(
-          type = "line",
-          x0 = min(stock_data$date), x1 = max(stock_data$date),
-          y0 = input$target_value, y1 = input$target_value,
-          line = list(color = "black", dash = "dash")
-        ),
-        legend = list(title = list(text = "Stock"))
-      ) %>% config(displaylogo = FALSE)}
-    
-    
-    else if (input$market_indicator == "individual" & input$stock_stats == "Compare")
-      # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
-      #     mutate(year=year(date), month = month(date))%>%
-      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-      #     labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
-      #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
-    {stock_data = tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      mutate(year=year(date), month = month(date))%>%
-      filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
-    stock_data %>% plot_ly(
-      x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
-      text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
-      hoverinfo = 'text'
-    ) %>%
-      layout(
-        title = "Price of a Single Share of Stock", xaxis = list(title = ""), yaxis = list(title = "Single Share Price"),
-        shapes = list(
-          type = "line",
-          x0 = min(stock_data$date), x1 = max(stock_data$date),
-          y0 = input$target_value, y1 = input$target_value,
-          line = list(color = "black", dash = "dash")
-        ),
-        legend = list(title = list(text = "Stock"))
-      ) %>% config(displaylogo = FALSE)}
+    if (input$market_indicator == "individual" & length(stock_trend_stock()$valid)) {
+      if (input$stock_stats == "price")
+        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        #     mutate(year=year(date), month = month(date))%>%
+        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
+        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      {stock_data = tq_get(stock_trend_stock()$valid,from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
+      stock_data %>% plot_ly(
+        x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines', 
+        text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
+        hoverinfo = 'text'
+      ) %>%
+        layout(
+          title = "Price of a Single Share of Stock", xaxis = list(title = ""), yaxis = list(title = "Single Share Price"),
+          shapes = list(
+            type = "line",
+            x0 = min(stock_data$date), x1 = max(stock_data$date),
+            y0 = input$target_value, y1 = input$target_value,
+            line = list(color = "black", dash = "dash")
+          ),
+          legend = list(title = list(text = "Stock"))
+        ) %>% config(displaylogo = FALSE)}
+      
+      
+      else if (input$stock_stats == "volume")
+        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        #     mutate(year=year(date), month = month(date))%>%
+        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        #     ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
+        #     labs(x="", y="Daily Transaction (in millions)",color="Stock", title = "Daily transaction volume of stock")+
+        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      {stock_data = tq_get(stock_trend_stock()$valid,from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
+      stock_data %>% plot_ly(
+        x = ~date, y = ~volume_adj, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
+        text = ~paste('Date:', date, '<br>Daily Transcation:', round(volume_adj,3), 'millions', '<br>Stock:', symbol),
+        hoverinfo = 'text'
+      ) %>%
+        layout(
+          title = "Daily transaction volume of stock", xaxis = list(title = ""), yaxis = list(title = "Daily Transaction (in millions)"),
+          shapes = list(
+            type = "line",
+            x0 = min(stock_data$date), x1 = max(stock_data$date),
+            y0 = input$target_value, y1 = input$target_value,
+            line = list(color = "black", dash = "dash")
+          ),
+          legend = list(title = list(text = "Stock"))
+        ) %>% config(displaylogo = FALSE)}
+      
+      
+      else if (input$stock_stats == "percent")
+      {stock_data = tq_get(stock_trend_stock()$valid[1],from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
+        mutate(perc_change = abs(diff(close)/lag(close)*100)) %>% 
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2], date < Sys.Date()-7) 
+      stock_data %>% plot_ly(
+        x = ~date, y = ~perc_change, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
+        text = ~paste('Date:', date, '<br>Percentage Change:', round(perc_change,3), '%', '<br>Stock:', symbol),
+        hoverinfo = 'text'
+      ) %>%
+        layout(
+          title = "Daily change of stock in percentage", xaxis = list(title = ""), yaxis = list(title = "Change in percentage"),
+          shapes = list(
+            type = "line",
+            x0 = min(stock_data$date), x1 = max(stock_data$date),
+            y0 = input$target_value, y1 = input$target_value,
+            line = list(color = "black", dash = "dash")
+          ),
+          legend = list(title = list(text = "Stock"))
+        ) %>% config(displaylogo = FALSE)}
+      
+      else if (input$stock_stats == "Compare")
+        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
+        #     mutate(year=year(date), month = month(date))%>%
+        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
+        #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
+        #     labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
+        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
+        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
+      {stock_data = tq_get(c(stock_trend_stock()$valid,"SPY"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
+        mutate(year=year(date), month = month(date))%>%
+        filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
+      stock_data %>% plot_ly(
+        x = ~date, y = ~close, color = ~symbol, colors = "Set2", type = 'scatter',mode = 'lines',
+        text = ~paste('Date:', date, '<br>Close Price:', round(close,3), 'USD', '<br>Stock:', symbol),
+        hoverinfo = 'text'
+      ) %>%
+        layout(
+          title = "Price of a Single Share of Stock", xaxis = list(title = ""), yaxis = list(title = "Single Share Price"),
+          shapes = list(
+            type = "line",
+            x0 = min(stock_data$date), x1 = max(stock_data$date),
+            y0 = input$target_value, y1 = input$target_value,
+            line = list(color = "black", dash = "dash")
+          ),
+          legend = list(title = list(text = "Stock"))
+        ) %>% config(displaylogo = FALSE)}
+    }
     
     # Market subplot
     else if (input$market_indicator == "Market")
