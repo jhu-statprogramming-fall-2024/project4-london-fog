@@ -55,7 +55,7 @@ SP500_all <- read.csv("S&P500_all.csv")
 SP500_all <- left_join(SP500_all, SP500_info, by = join_by(symbol == Symbol))
 
 # Read in all stock symbols and descriptions
-stock_symbols <- readRDS("allstock.rds")
+stock_symbols <- readRDS("allstock.rds") %>% mutate(country = as.factor(country))
 
 ## Main APP Part
 
