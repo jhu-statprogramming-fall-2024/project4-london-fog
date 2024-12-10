@@ -13,8 +13,8 @@ intro_4 <-  "Now, please give it a try and enjoy exploring the stock market!"
 data_summary_1 <- "Our data source comes from Yahoo finance, a website that provides financial news, data and commentary including stock quotes, press releases, financial reports, and other original contents. 
 Our app mainly uses its records of every single stock/ETF that gets traded on the U.S. stock exchanges on a given day. 
 For each stock, there is some basic information such as company name, sector, headquater location, CIK code, year founded and etc. 
-The main variables of interests are the stock's the daily opening, closing, highest and lowest prices, as well as the trading volume everyday."
-data_summary_2 <- "Here is a snapshot of what the 500 largest companies on the U.S. stock exchanges (S&P500) looks like."
+The main variables of interests from these stockss are the daily opening, closing, highest and lowest prices, as well as the trading volume everyday."
+data_summary_2 <- "Here is a snapshot of some of the largest companies on the U.S. stock exchanges (S&P500 and NASDAQ100) looks like."
 data_summary_3 <- "And of course, you have the opportunity to view a specific stock and get some basic ideas about its performance! 
 Please type in stock symbol or abbreviation. If you are not sure about your stock's symbol, feel free to refer to the link below that contains the list of all stock abbreviation! 
 The search fucntion can be used to further refine the output by time. For example, if you want to see your stock's price on a particular date, try type in Year-Month-Date, like 2023-12-20.
