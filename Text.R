@@ -102,13 +102,12 @@ selection_model_4<- "K-mean clustering: A method of vector quantization, origina
 
 portfolio_pick_stocks <- "Please enter up to 5 stock symbols seperated by commas (e.x AAPL,MSFT)"
 portfolio_stock_weights <- "Please select the corresponding weights"
-
 portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
 A portfolio will be generated based on the stock and weight inputs. 
 The portfolio will be compared with the S&P 500 from Jan.1 2000 to the present date, or from the start date of the newest stock to the present date. 
 The annualized return and volatility of the portfolio and the S&P 500 market index will be calculated and displayed in a table. 
 Users can use this tab to back test their investment strategy with the S&P 500 index."
-
+portfolio_prediction_intro <- "This tab makes prediction of future portfolio price based on Monte-Carlo simulations generated from selected years of past portfolio returns. "
 
 
 

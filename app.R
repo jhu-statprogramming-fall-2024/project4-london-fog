@@ -417,6 +417,8 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                          tabPanel(
                            "Prediction of Portfolio Performance", 
                            br(), 
+                           p(portfolio_prediction_intro), 
+                           br(), 
                            uiOutput("port_pred_ui")
                          )
                        ),
