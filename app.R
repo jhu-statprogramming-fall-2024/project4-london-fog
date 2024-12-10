@@ -274,73 +274,73 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                  
                  
                  
-                 # Tab Stock Selection
-                 tabPanel("Stock Selection",
-                          
-                          icon = icon("diagnoses"),
-                          
-                          fluidPage(
-                            
-                            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
-                                         
-                                         tags$br(br(),
-                                                 p(selection_0),
-                                                 
-                                         ),
-                                         
-                                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
-                                         
-                                         tags$br(
-                                           br(),
-                                           p(selection_1),
-                                           br())),
-                                         
-                                         # DT::DTOutput("info")),
-                            
-                            mainPanel(tabsetPanel(type="tabs", 
-                                                  tabPanel("Instruction",
-                                                           br(),
-                                                           
-                                                           strong(selection_instruction_1),
-                                                           
-                                                           tags$ol(
-                                                             br(),
-                                                             tags$li(selection_instruction_2),
-                                                             br(),
-                                                             tags$li(selection_instruction_3),
-                                                             br()
-                                                             
-                                                           ),
-                                                           p(selection_instruction_4),
-                                                           br(),
-                                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
-                                                           br()
-                                                           
-                                                  ),
-                                                  tabPanel("Model Building",
-                                                           br(),
-                                                           br(),
-                                                           p(selection_model_1),
-                                                           br(),
-                                                           p(selection_model_2),
-                                                           br(),
-                                                           p(selection_model_3),
-                                                           br(),
-                                                           p(selection_model_4),
-                                                           br()
-                                                           
-                                                  ),
-                                                  tabPanel("S&P 500 Cluster", 
-                                                           plotOutput("Cluster",click = "my_click"),
-                                                           br(), 
-                                                           DT::DTOutput("cluster_info")
-                                                           )
-                            ))
-                            
-                          )
-                          
-                 ),
-                 
+                 # # Tab Stock Selection
+                 # tabPanel("Stock Selection",
+                 #          
+                 #          icon = icon("diagnoses"),
+                 #          
+                 #          fluidPage(
+                 #            
+                 #            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
+                 #                         
+                 #                         tags$br(br(),
+                 #                                 p(selection_0),
+                 #                                 
+                 #                         ),
+                 #                         
+                 #                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
+                 #                         
+                 #                         tags$br(
+                 #                           br(),
+                 #                           p(selection_1),
+                 #                           br())),
+                 #                         
+                 #                         # DT::DTOutput("info")),
+                 #            
+                 #            mainPanel(tabsetPanel(type="tabs", 
+                 #                                  tabPanel("Instruction",
+                 #                                           br(),
+                 #                                           
+                 #                                           strong(selection_instruction_1),
+                 #                                           
+                 #                                           tags$ol(
+                 #                                             br(),
+                 #                                             tags$li(selection_instruction_2),
+                 #                                             br(),
+                 #                                             tags$li(selection_instruction_3),
+                 #                                             br()
+                 #                                             
+                 #                                           ),
+                 #                                           p(selection_instruction_4),
+                 #                                           br(),
+                 #                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
+                 #                                           br()
+                 #                                           
+                 #                                  ),
+                 #                                  tabPanel("Model Building",
+                 #                                           br(),
+                 #                                           br(),
+                 #                                           p(selection_model_1),
+                 #                                           br(),
+                 #                                           p(selection_model_2),
+                 #                                           br(),
+                 #                                           p(selection_model_3),
+                 #                                           br(),
+                 #                                           p(selection_model_4),
+                 #                                           br()
+                 #                                           
+                 #                                  ),
+                 #                                  tabPanel("S&P 500 Cluster", 
+                 #                                           plotOutput("Cluster",click = "my_click"),
+                 #                                           br(), 
+                 #                                           DT::DTOutput("cluster_info")
+                 #                                           )
+                 #            ))
+                 #            
+                 #          )
+                 #          
+                 # ),
+                 # 
                  # Tab Understand Your Portfolio
                  tabPanel(
                    "Understand Your Portfolio",
@@ -699,13 +699,6 @@ server <- function(input, output, session) {
   output$stock_trend_plot <- renderPlotly(
     if (input$market_indicator == "individual" & length(stock_trend_stock()$valid)) {
       if (input$stock_stats == "price")
-        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-        #     mutate(year=year(date), month = month(date))%>%
-        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-        #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-        #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
-        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
       {stock_data = tq_get(stock_trend_stock()$valid,from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date))%>%
         filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
@@ -727,13 +720,6 @@ server <- function(input, output, session) {
       
       
       else if (input$stock_stats == "volume")
-        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-        #     mutate(year=year(date), month = month(date))%>%
-        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-        #     ggplot(aes(x=date,y=volume/1000000,color=symbol)) + geom_line()+
-        #     labs(x="", y="Daily Transaction (in millions)",color="Stock", title = "Daily transaction volume of stock")+
-        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
       {stock_data = tq_get(stock_trend_stock()$valid,from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date), volume_adj = volume/1000000)%>%
         filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
@@ -776,13 +762,6 @@ server <- function(input, output, session) {
         ) %>% config(displaylogo = FALSE)}
       
       else if (input$stock_stats == "Compare")
-        # {tq_get(c(input$Select_Stock_01,input$Select_Stock_02,"SPY"),from = '2000-01-01',to = Sys.Date(),get = 'stock.prices') %>%
-        #     mutate(year=year(date), month = month(date))%>%
-        #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-        #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-        #     labs(x="", y="Single Share Price",color="Stock", title = "Price of a single share")+
-        #     geom_hline(yintercept= input$target_value,color="black",size = 0.5,alpha=0.5) +
-        #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
       {stock_data = tq_get(c(stock_trend_stock()$valid,"SPY"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
         mutate(year=year(date), month = month(date))%>%
         filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
@@ -805,12 +784,6 @@ server <- function(input, output, session) {
     
     # Market subplot
     else if (input$market_indicator == "Market")
-      # {tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
-      #     mutate(year=year(date), month = month(date))%>%
-      #     filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])%>%
-      #     ggplot(aes(x=date,y=close,color=symbol)) + geom_line()+
-      #     labs(x="", y="Single Share Price", color="Stock", title = "Price of a single share of stock")+
-      #     theme(legend.position="right",plot.title = element_text(hjust = 0.5)) +  theme_economist()}
     {stock_data = tq_get(c("SPY", "QQQ", "VTI"),from = '2000-01-01',to = Sys.Date(), get = 'stock.prices') %>%
       mutate(year=year(date), month = month(date))%>%
       filter(year >= input$Trend_Time[1] & year <= input$Trend_Time[2])
