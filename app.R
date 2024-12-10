@@ -293,9 +293,9 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                          tags$br(
                                            br(),
                                            p(selection_1),
-                                           br()),
+                                           br())),
                                          
-                                         DT::DTOutput("info")),
+                                         # DT::DTOutput("info")),
                             
                             mainPanel(tabsetPanel(type="tabs", 
                                                   tabPanel("Instruction",
@@ -330,8 +330,11 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                                            br()
                                                            
                                                   ),
-                                                  tabPanel("S&P 500 Cluster", plotOutput("Cluster",click = "my_click"),
-                                                           br(), DT::DTOutput("cluster_info"))
+                                                  tabPanel("S&P 500 Cluster", 
+                                                           plotOutput("Cluster",click = "my_click"),
+                                                           br(), 
+                                                           DT::DTOutput("cluster_info")
+                                                           )
                             ))
                             
                           )
@@ -970,6 +973,35 @@ server <- function(input, output, session) {
                                         options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip')
                                         
   )
+  
+  # Selection Tab
+  
+  output$Cluster <- renderPlot({generate_graph_cluster(input$Stock_Selected)})
+  
+  
+  output$info <- renderDataTable(nearPoints(SP500_all_single, input$my_click,threshold = 10) %>%
+                                   select(-X) %>%
+                                   rename(
+                                     Stock_cluster = cluster_km5
+                                   ), 
+                                 options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
+  
+  Cluster <- c(1,2,3,4,5)
+  
+  Color <- c("Red","Dark Green","Green","Blue","Purple")
+  
+  Return <- c("High","Low","High","Medium","Low")
+  
+  Volatility <- c("High","High","Low","Medium","Low")
+  
+  
+  cluster_info <- data.frame(Cluster, Color,Return, Volatility)
+  
+  
+  output$cluster_info <- renderDataTable(cluster_info, 
+                                         options = list(lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
+  
+  
   
   ### Understand your portfolio tab
   

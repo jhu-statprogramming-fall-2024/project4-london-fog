@@ -104,6 +104,43 @@ industry_analyze <-function(industry,start_date,end_date)
 }
 
 
+
+# Read in necessary data sets 
+
+SP500_all <- read.csv("Old_Data/SP500_all.csv")
+
+SP500_Individual <- read_csv("Old_Data/all_stocks_5yr.csv") 
+
+SP_clean<-read.csv("Old_Data/SP500_Individual_clean.csv")
+
+
+# K-Means Panel Prep
+standard_fun <- function(x) { (x - mean(x, na.rm=TRUE))/sd(x, na.rm = TRUE)}
+SP_clean <- SP_clean %>% drop_na()
+SP500_stand <- SP_clean%>%
+  select(Stock,Volatility, Return) %>%
+  mutate(Volatility = standard_fun(Volatility),Return=standard_fun(Return)) 
+
+
+# K-means
+
+set.seed(8848)
+
+km_SP500 <- kmeans(SP500_stand[2:3],centers=5, nstart=20)
+
+SP500_all_single<-SP_clean %>%
+  mutate(cluster_km5 = str_c("Cluster ",km_SP500$cluster))
+SP500_cluster_graph <- ggplot(SP500_all_single,aes(x=Volatility,y=Return,color=cluster_km5,tooltip=Stock)) +
+  geom_point()+
+  theme_bw() +
+  theme(legend.position="right",plot.title = element_text(hjust = 0.5),panel.grid.major = element_line(size = 0, linetype = 'solid',
+                                                                                                       colour = "white"))+
+  labs(color="Stock Cluster")+ ggtitle("5 Clusters of S&P 500 Stocks based on Past Return and Volatility (2013-2018)")
+generate_graph_cluster <- function(stock){
+  SP500_cluster_graph + geom_point(aes(x = Volatility,y = Return), data = SP500_all_single %>% filter(Stock == stock), shape = 8, color = "black",size=5.5) 
+}
+
+
 # This function is used to read data from the Portfolio Simulation Page to Compare user's Portfolio with S&P 500.
 
 portfolio_fun <- function(stocks, weights) {
