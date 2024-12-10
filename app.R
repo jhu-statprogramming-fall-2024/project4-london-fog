@@ -41,11 +41,12 @@ Nasdaq_info <- read_html(Nasdaq100_url) %>%
   html_table(fill = TRUE) %>%
   .[[5]]  # The fifth table
 
-dow_info <- tq_index("DOW-GLOBAL") %>% dplyr::select(-c(sector, weight)) 
+dow_info <- tq_index("DOW-GLOBAL") %>% 
+  dplyr::select(-c(sector, weight)) 
 
 
 industries_ETF <- c("XLK","XLY","XLC","XLF","XLV","XLP","XLE","XLI","XLU","XLB", "XLRE")
-sector_data <- tq_get(industries_ETF,from = "2010-01-01",to = Sys.Date(), get = 'stock.prices') 
+sector_data <- tq_get(industries_ETF,from = "2004-01-01",to = Sys.Date(), get = 'stock.prices') 
 
 # Take a while to pull, so we saved it in advance
 # write.csv(tq_get(SP500_info$Symbol, get = "stock.prices", from = Sys.Date()-1, to = Sys.Date()), 
@@ -238,8 +239,8 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                               # Time Frame 
                               sliderInput("Trend_Time_market",
                                           "Select Your Interested Time Frame",
-                                          value = c(2015,2023),
-                                          min = 2014,
+                                          value = c(2014,2023),
+                                          min = 2004,
                                           max = 2024, 
                                           sep = "")
                             ),
