@@ -137,7 +137,7 @@ SP500_cluster_graph <- ggplot(SP_clean, aes(x=Volatility, y=Return, color=Cluste
 generate_graph_cluster <- function(stock){
   SP500_cluster_graph + 
     geom_point(aes(x = Volatility, y = Return), 
-               data = SP_clean %>% filter(Stock == stock), 
+               data = SP_clean %>% filter(Stock %in% stock), 
                shape = 8, color = "black",size=5.5)
 }
 

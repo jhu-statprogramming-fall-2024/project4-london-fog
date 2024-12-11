@@ -220,6 +220,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                           value = c(2014,2023),
                                           min = 2004,
                                           max = 2024, 
+                                          animate = T,
                                           sep = "")
                             ),
                             
@@ -348,15 +349,28 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                               br(),
                               p(selection_0),
                               
-                              textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
+                              fluidRow(
+                                column(
+                                  8, 
+                                  textInput(inputId = "cluster_stocks_txt",
+                                            label = NULL,
+                                            value = "AAPL")
+                                ), 
+                                column(
+                                  4, 
+                                  actionButton(
+                                    "cluster_stocks_selector", 
+                                    "Stock selector"
+                                  )
+                                )
+                              ),
+                              htmlOutput("cluster_sel_stocks_text"), 
                               
                               tags$br(
                                 br(),
                                 p(selection_1),
                                 br())
                             ),
-                            
-                            # DT::DTOutput("info")),
                             
                             mainPanel(
                               tabsetPanel(
@@ -396,8 +410,7 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                                          br(),
                                          plotlyOutput("spy_cluster_plot"),
                                          br(), 
-                                         HTML(sp500_cluster_interpretation),
-                                         #DT::DTOutput("cluster_info")
+                                         HTML(sp500_cluster_interpretation)
                                 )
                                 
                               )
@@ -406,13 +419,6 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                           )
                           
                  )
-                 
-                 # # Tab Portfolio Optimization
-                 # tabPanel("Portfolio Optimization",
-                 #          
-                 #          icon = icon("coins")
-                 #          
-                 # )
                  
 )
 
@@ -930,35 +936,43 @@ server <- function(input, output, session) {
                                         
   )
   
-  # Selection Tab
+  ### Stock clusters tab
   
-  output$spy_cluster_plot <- renderPlotly({
-    generate_graph_cluster(input$Stock_Selected) %>% ggplotly()
+  cluster_max_stocks <- 10
+  
+  # Use stock selector to select cluster stocks
+  observeEvent(input$cluster_stocks_selector, {
+    stock_sel_param(list(max_stocks = cluster_max_stocks))
+    stock_sel_textbox("cluster_stocks_txt")
   })
   
+  # Stock text parse output
+  cluster_stocks_temp <- reactive({
+    parse_stock_text(input$cluster_stocks_txt, cluster_max_stocks)
+  })
   
-  output$info <- renderDataTable(nearPoints(SP500_all_single, input$my_click,threshold = 10) %>%
-                                   select(-X) %>%
-                                   rename(
-                                     Stock_cluster = cluster_km5
-                                   ), 
-                                 options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
+  # Show currently selected stocks from text input
+  output$cluster_sel_stocks_text <- renderText({
+    valid_stocks <- cluster_stocks_temp()$valid[cluster_stocks_temp()$valid %in% SP_clean$Stock]
+    invalid_stocks <- c(cluster_stocks_temp()$invalid, 
+                        setdiff(cluster_stocks_temp()$valid, valid_stocks))
+    selected_text <- paste("You have selected the following stocks:", 
+                           paste(valid_stocks, 
+                                 collapse = ", "))
+    if (length(valid_stocks) == 0) {
+      selected_text <- "You have not selected any stocks. "
+    }
+    invalid_text <- paste("The following selection is invalid:", 
+                          paste(invalid_stocks, collapse = ", "))
+    if (length(invalid_stocks) == 0) {
+      invalid_text <- NULL
+    }
+    paste(c(selected_text, invalid_text), collapse = "<br/>")
+  })
   
-  # Cluster <- c(1,2,3,4,5)
-  # 
-  # Color <- c("Red","Dark Green","Green","Blue","Purple")
-  # 
-  # Return <- c("High","Low","High","Medium","Low")
-  # 
-  # Volatility <- c("High","High","Low","Medium","Low")
-  # 
-  # 
-  # cluster_info <- data.frame(Cluster, Color,Return, Volatility)
-  # 
-  # 
-  # output$cluster_info <- renderDataTable(cluster_info, 
-  #                                        options = list(lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
-  # 
+  output$spy_cluster_plot <- renderPlotly({
+    generate_graph_cluster(cluster_stocks_temp()$valid) %>% ggplotly()
+  })
   
   
   ### Understand your portfolio tab
