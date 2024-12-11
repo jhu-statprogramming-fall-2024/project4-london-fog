@@ -108,36 +108,37 @@ industry_analyze <-function(industry,start_date,end_date)
 # Read in necessary data sets 
 
 SP500_all <- read.csv("Old_Data/SP500_all.csv")
-
-SP500_Individual <- read_csv("Old_Data/all_stocks_5yr.csv") 
-
-SP_clean<-read.csv("Old_Data/SP500_Individual_clean.csv")
-
-
-# K-Means Panel Prep
-standard_fun <- function(x) { (x - mean(x, na.rm=TRUE))/sd(x, na.rm = TRUE)}
-SP_clean <- SP_clean %>% drop_na()
-SP500_stand <- SP_clean%>%
-  select(Stock,Volatility, Return) %>%
-  mutate(Volatility = standard_fun(Volatility),Return=standard_fun(Return)) 
+SP_clean <- read.csv("Old_Data/SP500_Individual_clean.csv")
 
 
 # K-means
-
+SP_clean <- SP_clean %>%
+  select(Stock, Volatility, Return) %>% 
+  mutate(scaled_volatility = scale(Volatility), 
+         scaled_return = scale(Return)) %>% 
+  drop_na()
 set.seed(8848)
+km_SP500 <- kmeans(SP_clean %>% 
+                     select(scaled_volatility, 
+                            scaled_return), 
+                   centers=3, nstart=20)
+SP_clean <- SP_clean %>%
+  mutate(Cluster = str_c("Cluster ", km_SP500$cluster))
 
-km_SP500 <- kmeans(SP500_stand[2:3],centers=5, nstart=20)
-
-SP500_all_single<-SP_clean %>%
-  mutate(cluster_km5 = str_c("Cluster ",km_SP500$cluster))
-SP500_cluster_graph <- ggplot(SP500_all_single,aes(x=Volatility,y=Return,color=cluster_km5,tooltip=Stock)) +
-  geom_point()+
+# Make cluster plot
+SP500_cluster_graph <- ggplot(SP_clean, aes(x=Volatility, y=Return, color=Cluster, tooltip=Stock)) +
+  geom_point() +
   theme_bw() +
   theme(legend.position="right",plot.title = element_text(hjust = 0.5),panel.grid.major = element_line(size = 0, linetype = 'solid',
                                                                                                        colour = "white"))+
-  labs(color="Stock Cluster")+ ggtitle("5 Clusters of S&P 500 Stocks based on Past Return and Volatility (2013-2018)")
+  labs(color="Stock Cluster")+ ggtitle("k-means clusters of S&P 500 stocks based on past return and volatility")
+
+# Function for adding a star indicating selected stock on cluster plot
 generate_graph_cluster <- function(stock){
-  SP500_cluster_graph + geom_point(aes(x = Volatility,y = Return), data = SP500_all_single %>% filter(Stock == stock), shape = 8, color = "black",size=5.5) 
+  SP500_cluster_graph + 
+    geom_point(aes(x = Volatility, y = Return), 
+               data = SP_clean %>% filter(Stock == stock), 
+               shape = 8, color = "black",size=5.5)
 }
 
 

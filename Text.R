@@ -76,8 +76,21 @@ market_dis_instruction_6 <- "<ul>
                     <br>
                   </ul>"
 
+
 # Tab 4
-selection_0 <- "A stock of interest could be entered and a black locator will locate your stock on the graph"
+
+portfolio_pick_stocks <- "Please enter up to 5 stock symbols seperated by commas (e.x AAPL,MSFT)"
+portfolio_stock_weights <- "Please select the corresponding weights"
+portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
+A portfolio will be generated based on the stock and weight inputs. 
+The portfolio will be compared with the S&P 500 from Jan.1 2000 to the present date, or from the start date of the newest stock to the present date. 
+The annualized return and volatility of the portfolio and the S&P 500 market index will be calculated and displayed in a table. 
+Users can use this tab to back test their investment strategy with the S&P 500 index."
+portfolio_prediction_intro <- "This tab makes prediction of future portfolio price based on Monte-Carlo simulations generated from selected years of past portfolio returns. "
+
+
+# Tab 5
+selection_0 <- "A stock of interest could be entered and a black locator will locate your stock on the graph. "
 
 selection_1 <- "Feel free to click on the graph to view specific stock information. The table below will automatically provide you with stocks with the closet characteristics of your selection."
 
@@ -98,17 +111,11 @@ selection_model_2<- "Return:  A net gain or loss of an investment over a specifi
 selection_model_3<- "Volatility:  A statistical measure of the dispersion of returns for a given security or market index. In most cases, the higher the volatility, the riskier the security."
 selection_model_4<- "K-mean clustering: A method of vector quantization, originally from signal processing, that aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean"
 
-# Tab 5
-
-portfolio_pick_stocks <- "Please enter up to 5 stock symbols seperated by commas (e.x AAPL,MSFT)"
-portfolio_stock_weights <- "Please select the corresponding weights"
-portfolio_instruction <- "This tab allows users to input different stocks with different corresponding weights. 
-A portfolio will be generated based on the stock and weight inputs. 
-The portfolio will be compared with the S&P 500 from Jan.1 2000 to the present date, or from the start date of the newest stock to the present date. 
-The annualized return and volatility of the portfolio and the S&P 500 market index will be calculated and displayed in a table. 
-Users can use this tab to back test their investment strategy with the S&P 500 index."
-portfolio_prediction_intro <- "This tab makes prediction of future portfolio price based on Monte-Carlo simulations generated from selected years of past portfolio returns. "
-
+sp500_cluster_interpretation <- "The S&P 500 stocks are clustered into 3 groups by k-means clustering on their past return and volatility. <br>
+<br>
+<b>Cluster 1</b>: this cluster has medium to high returns but may have higher volatility. While these stocks generally offer high returns, it is important to consider your individual risk tolerance before investing in them. <br>
+<b>Cluster 2</b>: this cluster has low returns and somewhat high volatility. Some reasons to invest in these stocks may include diversification of your portfolio or profit from the short-term price movements. <br>
+<b>Cluster 3</b>: this cluster has low to medium returns and low volatility. These stocks are a good choice when you have a low risk tolerance. "
 
 
 

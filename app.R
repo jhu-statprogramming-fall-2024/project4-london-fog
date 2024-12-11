@@ -342,61 +342,66 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                           
                           fluidPage(
                             
-                            sidebarPanel(titlePanel("Pick Your Stock of Interest"),
-                                         
-                                         tags$br(br(),
-                                                 p(selection_0),
-                                                 
-                                         ),
-                                         
-                                         textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
-                                         
-                                         tags$br(
-                                           br(),
-                                           p(selection_1),
-                                           br())),
+                            sidebarPanel(
+                              titlePanel("Pick Your Stock of Interest"),
+                              
+                              br(),
+                              p(selection_0),
+                              
+                              textInput(inputId = "Stock_Selected",label = "Stock of Interest",value = "AAPL"),
+                              
+                              tags$br(
+                                br(),
+                                p(selection_1),
+                                br())
+                            ),
                             
                             # DT::DTOutput("info")),
                             
-                            mainPanel(tabsetPanel(type="tabs", 
-                                                  tabPanel("Instruction",
-                                                           br(),
-                                                           
-                                                           strong(selection_instruction_1),
-                                                           
-                                                           tags$ol(
-                                                             br(),
-                                                             tags$li(selection_instruction_2),
-                                                             br(),
-                                                             tags$li(selection_instruction_3),
-                                                             br()
-                                                             
-                                                           ),
-                                                           p(selection_instruction_4),
-                                                           br(),
-                                                           div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
-                                                           br()
-                                                           
-                                                  ),
-                                                  tabPanel("Model Building",
-                                                           br(),
-                                                           br(),
-                                                           p(selection_model_1),
-                                                           br(),
-                                                           p(selection_model_2),
-                                                           br(),
-                                                           p(selection_model_3),
-                                                           br(),
-                                                           p(selection_model_4),
-                                                           br()
-                                                           
-                                                  ),
-                                                  tabPanel("S&P 500 Cluster", 
-                                                           plotOutput("Cluster",click = "my_click"),
-                                                           br(), 
-                                                           DT::DTOutput("cluster_info")
-                                                  )
-                            ))
+                            mainPanel(
+                              tabsetPanel(
+                                type="tabs", 
+                                tabPanel("Instruction",
+                                         br(),
+                                         
+                                         strong(selection_instruction_1),
+                                         
+                                         tags$ol(
+                                           br(),
+                                           tags$li(selection_instruction_2),
+                                           br(),
+                                           tags$li(selection_instruction_3),
+                                           br()
+                                           
+                                         ),
+                                         p(selection_instruction_4),
+                                         br(),
+                                         div(img(src='image-neba-articl.png',width="60%"), style="text-align: center;"),
+                                         br()
+                                         
+                                ),
+                                tabPanel("Model Building",
+                                         br(),
+                                         p(selection_model_1),
+                                         br(),
+                                         p(selection_model_2),
+                                         br(),
+                                         p(selection_model_3),
+                                         br(),
+                                         p(selection_model_4),
+                                         br()
+                                         
+                                ),
+                                tabPanel("S&P 500 Cluster", 
+                                         br(),
+                                         plotlyOutput("spy_cluster_plot"),
+                                         br(), 
+                                         HTML(sp500_cluster_interpretation),
+                                         #DT::DTOutput("cluster_info")
+                                )
+                                
+                              )
+                            )
                             
                           )
                           
@@ -927,7 +932,9 @@ server <- function(input, output, session) {
   
   # Selection Tab
   
-  output$Cluster <- renderPlot({generate_graph_cluster(input$Stock_Selected)})
+  output$spy_cluster_plot <- renderPlotly({
+    generate_graph_cluster(input$Stock_Selected) %>% ggplotly()
+  })
   
   
   output$info <- renderDataTable(nearPoints(SP500_all_single, input$my_click,threshold = 10) %>%
@@ -937,21 +944,21 @@ server <- function(input, output, session) {
                                    ), 
                                  options = list(pageLength = 5, lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
   
-  Cluster <- c(1,2,3,4,5)
-  
-  Color <- c("Red","Dark Green","Green","Blue","Purple")
-  
-  Return <- c("High","Low","High","Medium","Low")
-  
-  Volatility <- c("High","High","Low","Medium","Low")
-  
-  
-  cluster_info <- data.frame(Cluster, Color,Return, Volatility)
-  
-  
-  output$cluster_info <- renderDataTable(cluster_info, 
-                                         options = list(lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
-  
+  # Cluster <- c(1,2,3,4,5)
+  # 
+  # Color <- c("Red","Dark Green","Green","Blue","Purple")
+  # 
+  # Return <- c("High","Low","High","Medium","Low")
+  # 
+  # Volatility <- c("High","High","Low","Medium","Low")
+  # 
+  # 
+  # cluster_info <- data.frame(Cluster, Color,Return, Volatility)
+  # 
+  # 
+  # output$cluster_info <- renderDataTable(cluster_info, 
+  #                                        options = list(lengthChange = FALSE,info = FALSE,dom='t',searching=F,sDom  = '<"top">lrt<"bottom">ip'))
+  # 
   
   
   ### Understand your portfolio tab
