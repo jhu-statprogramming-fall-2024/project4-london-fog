@@ -1191,7 +1191,7 @@ server <- function(input, output, session) {
       return(
         tagList(
           p(paste("You have selected the following stocks that are initially offered within the past year:", 
-                  paste(port_stocks()[ipo >= (Sys.Date() - years(1))], collapse = ", "))), 
+                  paste(sort(port_stocks())[ipo >= (Sys.Date() - years(1))], collapse = ", "))), 
           p("This function can only be used to predict performance of stocks with more than a year of history. 
           Please remove these stocks from your portfolio to use this function. ")
         )
