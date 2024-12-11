@@ -109,9 +109,21 @@ ui <- navbarPage("How to Survive in the U.S. Stock Market", theme = shinytheme("
                             
                             br(),
                             
-                            textInput(inputId = "Summary_Stock_Selected",label = "Your Stock of Interest",value = "SHAK"),
+                            fluidRow(
+                              column(
+                                2,
+                                textInput(inputId = "summary_stock_sel_txt",
+                                          label = NULL, value = "SHAK")
+                              ),
+                              column(
+                                1,
+                                actionButton("summary_stock_selector",
+                                             label = "Stock selector")
+                              )
+                            ),
+                            htmlOutput("summary_sel_stocks_text"),
                             
-                            DT::DTOutput("Summary_stock"),
+                            uiOutput("summary_stock_table_ui"),
                             
                           )),
                  
@@ -570,8 +582,47 @@ server <- function(input, output, session) {
   output$dow_table <- DT::renderDT(expr = dow_info,
                                       options = list(pageLength = 10, lengthChange = FALSE, searching = F))
   
+  summary_max_stocks <- 1
   
-  output$Summary_stock <- DT::renderDT(expr = tq_get(input$Summary_Stock_Selected, 
+  # Use stock selector to select stocks
+  observeEvent(input$summary_stock_selector, {
+    stock_sel_param(list(max_stocks = summary_max_stocks))
+    stock_sel_textbox("summary_stock_sel_txt")
+  })
+  
+  # Stock text parse output
+  summary_stock <- reactive({
+    parse_stock_text(input$summary_stock_sel_txt, summary_max_stocks)
+  })
+  
+  # Show currently selected stocks from text input
+  output$summary_sel_stocks_text <- renderText({
+    selected_text <- paste("You have selected the following stocks:", 
+                           paste(summary_stock()$valid, 
+                                 collapse = ", "))
+    if (length(summary_stock()$valid) == 0) {
+      selected_text <- "You have not selected any stocks. "
+    }
+    invalid_text <- paste("The following selection is invalid:", 
+                          paste(summary_stock()$invalid, collapse = ", "))
+    if (length(summary_stock()$invalid) == 0) {
+      invalid_text <- NULL
+    }
+    paste(c(selected_text, invalid_text), collapse = "<br/>")
+  })
+  
+  # Summary stock table UI
+  output$summary_stock_table_ui <- renderUI({
+    # Only show table if stock is selected
+    if (length(summary_stock()$valid)) {
+      DT::DTOutput("Summary_stock")
+    } else {
+      p("Please first select a stock to view the summary stock table. ")
+    }
+  })
+  
+  # Summary stock table
+  output$Summary_stock <- DT::renderDT(expr = tq_get(summary_stock()$valid, 
                                                      get = 'stock.prices',
                                                      from = Sys.Date()-365*10, to = Sys.Date()) %>% 
                                          mutate(Stock = symbol, Date = date,
