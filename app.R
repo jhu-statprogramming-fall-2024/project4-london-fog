@@ -447,15 +447,16 @@ server <- function(input, output, session) {
   # Output textbox
   stock_sel_textbox <- reactiveVal(NULL)
   
-  # Stock symbols table
-  output$stock_symbols_table <- DT::renderDataTable(stock_symbols, 
-                                                    rownames = FALSE, 
-                                                    filter = list(position = 'top', clear = FALSE), 
-                                                    selection = "multiple",
-                                                    escape = FALSE)
+  # Selection mode
+  stock_sel_selection_mode <- reactiveVal("multiple")
   
   # Selector modal dialogue
   observeEvent(stock_sel_textbox(), {
+    if (stock_sel_param()$max_stocks > 1) {
+      stock_sel_selection_mode("multiple")
+    } else {
+      stock_sel_selection_mode("single")
+    }
     showModal(
       modalDialog(
         h3("Select your stocks"),
@@ -485,6 +486,13 @@ server <- function(input, output, session) {
       )
     )
   })
+  
+  # Stock symbols table
+  output$stock_symbols_table <- DT::renderDataTable(stock_symbols, 
+                                                    rownames = FALSE, 
+                                                    filter = list(position = 'top', clear = FALSE), 
+                                                    selection = stock_sel_selection_mode(),
+                                                    escape = FALSE)
   
   # Current selection text
   output$stock_sel_text <- renderText({
