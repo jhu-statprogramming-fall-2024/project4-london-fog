@@ -37,7 +37,7 @@ stock_trend_jargon_5 <- "ETF: An exchange traded fund (ETF) is a basket of secur
 stock_trend_1 <- "This tab mainly consists of two functions:"
 stock_trend_2 <- "When “Individual Stocks” is selected, the user could input two stocks of interest. 
 Then, the user will be given the chance of selecting whether she wants to analyze the stock’s daily investment worth ordaily transaction volume. An option is also given to compare the investment with the S&P to give the user a better sense of whether the stock of interest has outperformed or underperformed the market. 
-User could also use the slidebar to select her time frame of interest "
+User could also use the slidebar to select their time frame of interest "
 stock_trend_3 <- "When the three indexes are selected, a graph plotting the investment worth of the index will be generated based on the time frame of interest.
 A threshold value could also be entered to set targeted values"
 stock_trend_4 <- "The user could use this tab to learn about general market trends and compare individual stock’s performance with the general market’s. "
@@ -102,10 +102,10 @@ selection_6 <- "Cluster 5 (Purple) = Medium/Low Return and low Volatility."
 selection_instruction_1 <- "This tab mainly consist of two functions: "
 selection_instruction_2<- "The user could input a stock of interest within the S&P 500 universe, a black pointer will be generated on the cluster graph identifying the stock of interest. The user could easily the cluster that the stock belongs to"
 selection_instruction_3<-  "The user could also click on any point on the graph to find out what company it represents along with its neighbors. "
-selection_instruction_4<- "The user could use this tab to learn about which cluster her stock of interest belongs to and investigate stocks who are in a similar cluster. The details of how the clusters are generated is detailed in the model building tab. "
+selection_instruction_4<- "The user could use this tab to learn about which cluster their stock of interest belongs to and investigate stocks who are in a similar cluster. The details of how the clusters are generated is detailed in the model building tab. "
 
 selection_model_1<- "This model uses the k-means unsupervised algorithm to separate the S&P 500 stocks 
-into 5 different clusters based on return and volatility from 2013-2018. "
+into 5 different clusters based on return and volatility."
 selection_model_2<- "Return:  A net gain or loss of an investment over a specified time period, expressed as a percentage of the investment’s initial cost. "
 selection_model_3<- "Volatility:  A statistical measure of the dispersion of returns for a given security or market index. In most cases, the higher the volatility, the riskier the security."
 selection_model_4<- "K-mean clustering: A method of vector quantization, originally from signal processing, that aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean"
