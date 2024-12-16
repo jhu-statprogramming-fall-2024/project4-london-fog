@@ -4,6 +4,33 @@ Team: London Fog
 
 Team members: Angela Zhao, Zheng Ren, Yuzi Li, Yicheng Shen
 
-Here is the repo for our submission of the Final Project.
-
 Our main data analytic product, a shiny app, has also been deployed: https://zren0723.shinyapps.io/project4-london-fog/
+
+## Overview
+
+The project aims to provide beginner investors with an accessible, interactive tool to better understand stock market performance and optimize their investment strategies. 
+Our team developed this Shiny app that combines real-time stock data, portfolio analysis, and statistical prediction to address the limitations of existing tools, such as high costs (Bloomberg Terminal) and lack of predictive features (free alternatives like stocktracker).
+
+
+## Key Features of the Project:
+
+*User-Friendly Interface*: The app is designed for ease of use, with interactive visualizations tailored to the needs of retail investors.
+
+*Stock Market Insights*: Users can compare stock trends, analyze market performance, and track portfolios using historical data.
+
+*Portfolio Prediction*: Monte Carlo simulations are integrated to predict future portfolio performance based on user inputs.
+
+*Stock Clustering*: K-means clustering groups stocks based on return and volatility, providing insights into stock behavior.
+
+
+## Data and Tools:
+
+Our data source is from Yahoo Finance database (accessed via `tidyquant` package).
+
+### Programing Paradigms:
+
+Functional programming for efficient data handling.
+
+Machine learning (K-means clustering) for stock groupings.
+
+Monte Carlo simulations for predictive analytics.
