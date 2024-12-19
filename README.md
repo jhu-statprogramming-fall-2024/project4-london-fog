@@ -6,6 +6,8 @@ Team members: Angela Zhao, Zheng Ren, Yuzi Li, Yicheng Shen
 
 Our main data analytic product, a shiny app, has also been deployed: https://zren0723.shinyapps.io/project4-london-fog/
 
+A write-up of this final project is also included in this repo, with the file name `Final Project Write-up`. 
+
 ## Overview
 
 The project aims to provide beginner investors with an accessible, interactive tool to better understand stock market performance and optimize their investment strategies. 
